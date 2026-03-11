@@ -935,56 +935,7 @@
         </div>
     </div>
 
-    <!-- 엑셀 수동 매핑 모달 -->
-    <div id="excel-mapping-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"
-                style="margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem;">
-                <h2 style="font-size: 1.5rem; color: #38bdf8;">⚙️ 엑셀 수동 컬럼 매핑</h2>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
-                    자동 인식에 실패했습니다. 아래 엑셀 내용을 보고 각 정보를 가진 <strong>번호(Column)</strong>를 직접 선택해주세요.
-                </p>
-            </div>
 
-            <div class="excel-preview-container">
-                <table id="excel-preview-table" class="excel-preview-table"></table>
-            </div>
-
-            <div class="mapping-controls">
-                <div class="form-group">
-                    <label>📅 날짜 열</label>
-                    <select id="map-date" class="form-control"></select>
-                </div>
-                <div class="form-group">
-                    <label>🏪 가맹점(내역) 열</label>
-                    <select id="map-merchant" class="form-control"></select>
-                </div>
-                <div class="form-group">
-                    <label>📤 출금(지출) 열</label>
-                    <select id="map-amount" class="form-control"></select>
-                </div>
-                <div class="form-group">
-                    <label>📥 입금(수입) 열</label>
-                    <select id="map-income" class="form-control">
-                        <option value="-1">없음</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>🏷️ 카테고리(선택)</label>
-                    <select id="map-category" class="form-control">
-                        <option value="-1">직접 지정 안 함</option>
-                    </select>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn-submit" onclick="applyManualMapping()" style="background: var(--success);">매핑 적용 및
-                    업로드</button>
-                <button class="btn-submit" onclick="closeMappingModal()"
-                    style="background: var(--text-secondary);">취소</button>
-            </div>
-        </div>
-    </div>
 
     <!-- 데이터 주입 영역 -->
 
@@ -1601,276 +1552,215 @@
             reader.readAsArrayBuffer(file);
         }
 
-        let globalAllRows = [];
-        let globalFilename = "";
 
-        function showMappingModal(allRows, filename) {
-            globalAllRows = allRows;
-            globalFilename = filename;
-            const modal = document.getElementById('excel-mapping-modal');
-            const table = document.getElementById('excel-preview-table');
-            const selects = ['map-date', 'map-merchant', 'map-amount', 'map-income', 'map-category'];
 
-            // 미리보기 테이블 채우기 (최대 6줄)
-            let tableHtml = '<thead><tr><th>Col #</th>';
-            const maxCols = Math.max(...allRows.slice(0, 6).map(r => r.length));
-            for (let i = 0; i < maxCols; i++) tableHtml += `<th>${i}</th>`;
-            tableHtml += '</tr></thead><tbody>';
-
-            allRows.slice(0, 6).forEach((row, rIdx) => {
-                tableHtml += `<tr><td>Row ${rIdx}</td>`;
-                for (let i = 0; i < maxCols; i++) tableHtml += `<td>${row[i] || ''}</td>`;
-                tableHtml += '</tr>';
-            });
-            tableHtml += '</tbody>';
-            table.innerHTML = tableHtml;
-
-            // 셀렉트 박스 옵션 채우기
-            selects.forEach(id => {
-                const sel = document.getElementById(id);
-                const prevVal = sel.value;
-                if (id === 'map-category') {
-                    sel.innerHTML = '<option value="-1">직접 지정 안 함</option>';
-                } else if (id === 'map-income') {
-                    sel.innerHTML = '<option value="-1">입금 열 없음</option>';
-                } else {
-                    sel.innerHTML = '';
-                }
-                for (let i = 0; i < maxCols; i++) {
-                    const option = document.createElement('option');
-                    option.value = i;
-                    option.text = `Column ${i}`;
-                    sel.appendChild(option);
-                }
-            });
-
-            modal.style.display = 'flex';
-        }
-
-        function closeMappingModal() {
-            document.getElementById('excel-mapping-modal').style.display = 'none';
-        }
-
-        function applyManualMapping() {
-            const colIndices = {
-                date: parseInt(document.getElementById('map-date').value),
-                merchant: parseInt(document.getElementById('map-merchant').value),
-                amount: parseInt(document.getElementById('map-amount').value),
-                income: parseInt(document.getElementById('map-income').value),
-                category: parseInt(document.getElementById('map-category').value)
-            };
-
-            // 헤더가 몇 번째 줄인지 묻기 (기본 0 또는 직접 입력)
-            const headerRowPrompt = prompt("데이터가 시작되는 줄 번호(Row #)를 입력해주세요. (보통 제목줄 다음 번호)", "1");
-            const startIdx = parseInt(headerRowPrompt) || 0;
-
-            processExcelData(globalAllRows, globalFilename, colIndices, startIdx);
-            closeMappingModal();
-        }
-
-        function processExcelData(allRows, filename, manualColIndices = null, startFrom = -1) {
+        async function processExcelData(allRows, filename) {
             if (!allRows || allRows.length === 0) {
                 alert('엑셀 파일에 데이터가 없습니다.');
                 return;
             }
 
-            let headerIdx = -1;
-            let colIndices = { date: -1, merchant: -1, amount: -1, income: -1, category: -1 };
+            if (!userSettings.geminiApiKey) {
+                alert('먼저 ⚙️ 설정 탭에서 Gemini API Key를 입력하고 저장해주세요.');
+                return;
+            }
 
-            if (manualColIndices) {
-                headerIdx = startFrom - 1;
-                colIndices = manualColIndices;
-            } else {
-                // 자동 헤더 감지 로직
-                const colMaps = {
-                    date: ['거래일시', '거래일', '일자', 'Date', '날짜', '작성일', '일시', '승인일자', '사용일자', '이용일자', '결제일', '이용일', '거래일자'],
-                    merchant: ['가맹점명', '거래처', '내역', '적요', 'Merchant', '가맹점', '사용처', '항목', '내용', '가맹점명/찾으신분', '거래대상', '이용처', '이용내역', '사용내역'],
-                    amount: ['거래금액', '지출', '금액', 'Amount', '출금금액', '합계', '결제금액', '사용금액', '승인금액', '이용금액', '결제일합계', '출금(원)', '출금'],
-                    income: ['입금액', '입금', '수입', 'Income', '입금금액', '맡기신분', '입금(원)'],
-                    category: ['분류', '유형', 'Category', '카테고리', '구분', '업종']
-                };
+            const btn = document.getElementById('import-excel').previousElementSibling;
+            const originalText = btn.innerText;
+            btn.innerText = '⌛ AI 분석 중...';
+            btn.disabled = true;
 
-                for (let i = 0; i < Math.min(allRows.length, 20); i++) {
+            try {
+                // Convert rows to CSV string
+                let csvContent = "";
+                const maxRows = Math.min(allRows.length, 100); // Send max 100 rows to avoid token overflow
+                for (let i = 0; i < maxRows; i++) {
                     const row = allRows[i];
-                    if (!Array.isArray(row)) continue;
-                    let tempIndices = { date: -1, merchant: -1, amount: -1, income: -1, category: -1 };
-                    row.forEach((cell, idx) => {
-                        if (!cell) return;
-                        const cellStr = cell.toString().replace(/\s/g, '').toLowerCase();
-                        Object.keys(colMaps).forEach(key => {
-                            if (colMaps[key].some(c => c.replace(/\s/g, '').toLowerCase() === cellStr)) {
-                                tempIndices[key] = idx;
-                            }
-                        });
-                    });
-                    if (tempIndices.date !== -1 && (tempIndices.amount !== -1 || tempIndices.income !== -1)) {
-                        headerIdx = i;
-                        colIndices = tempIndices;
-                        break;
+                    if (row && row.length > 0 && row.some(cell => cell !== null && cell !== '')) { 
+                        csvContent += row.map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(",") + "\n";
                     }
                 }
-            }
 
-            if (headerIdx === -1 && !manualColIndices) {
-                showMappingModal(allRows, filename);
-                return;
-            }
+                // Call Gemini API
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${userSettings.geminiApiKey}`;
+                
+                const prompt = `
+다음은 유저가 업로드한 가계부/카드/은행 거래 내역 CSV 데이터야.
+이 데이터를 분석해서 가계부 거래 내역 JSON 배열로 변환해줘.
 
-            const cleanAmount = (val) => {
-                if (typeof val === 'number') return Math.abs(val);
-                if (!val) return 0;
-                const cleaned = parseInt(val.toString().replace(/[^0-9-]/g, ''));
-                return isNaN(cleaned) ? 0 : Math.abs(cleaned);
-            };
+규칙:
+1. 단순한 제목줄, 헤더, 안내문구는 무시해. 실제 거래 내역(날짜와 금액, 가맹점이 포함된 행)만 추출해.
+2. 정확히 JSON 형태의 객체 배열로만 반환해!! 마크다운이나 백틱(\`\`\`json)은 포함하지 말고 순수한 배열 문자열만 출력해.
+3. 데이터 객체 형식:
+{
+    "date": "MM.DD", // 년도 생략, 월과 일만 (예: 03.11)
+    "merchant": "이름", // 가맹점이나 거래 내역 (예: 스타벅스, 식당 등)
+    "amount": 숫자,  // 콤마 제거한 정수 금액
+    "type": "expense" 또는 "income", // 지출이면 "expense", 입금/수입이면 "income"
+    "category": "분류" // 식비, 교통, 쇼핑, 생활/미용, 여가/여행, 통신/보험/공과금, 기타 중 어울리는 것 (입금이면 "수입")
+}
 
-            const normalizeDate = (val) => {
-                if (!val) return new Date().toLocaleDateString('ko-KR').slice(5, -1).replace(/\. /g, '.');
-                if (typeof val === 'number') {
-                    const date = new Date((val - 25569) * 86400 * 1000);
-                    return `${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`;
-                }
-                const str = val.toString().trim();
-                // 1. YYYY.MM.DD 또는 YY.MM.DD 패턴 (MM.DD 추출)
-                const longDate = str.match(/(\d{2,4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
-                if (longDate) return `${longDate[2].padStart(2, '0')}.${longDate[3].padStart(2, '0')}`;
+CSV 데이터:
+${csvContent}
+`;
 
-                // 2. MM.DD 패턴
-                const shortDate = str.match(/(\d{1,2})[.\-/](\d{1,2})/);
-                if (shortDate) return `${shortDate[1].padStart(2, '0')}.${shortDate[2].padStart(2, '0')}`;
-
-                return str;
-            };
-
-            const dataRows = allRows.slice(headerIdx + 1);
-            const newTransactions = dataRows.map(row => {
-                let amount = 0;
-                let type = 'expense';
-                let category = '기타';
-
-                const outAmt = colIndices.amount !== -1 ? cleanAmount(row[colIndices.amount]) : 0;
-                const inAmt = colIndices.income !== -1 ? cleanAmount(row[colIndices.income]) : 0;
-
-                if (inAmt > 0) {
-                    amount = inAmt;
-                    type = 'income';
-                    category = '수입';
-                } else if (outAmt > 0) {
-                    amount = outAmt;
-                    type = 'expense';
-                    category = (colIndices.category !== -1 && row[colIndices.category]) ? row[colIndices.category] : '기타';
-                } else {
-                    return null;
-                }
-
-                return {
-                    id: Date.now() + Math.random(),
-                    date: normalizeDate(row[colIndices.date]),
-                    merchant: row[colIndices.merchant] || '알 수 없음',
-                    amount: amount,
-                    category: category,
-                    source: filename,
-                    type: type
+                const body = {
+                    "contents": [{
+                        "parts":[ {"text": prompt} ]
+                    }],
+                    "generationConfig": {
+                        "response_mime_type": "application/json"
+                    }
                 };
-            }).filter(tr => tr !== null);
 
-            if (newTransactions.length === 0) {
-                alert('유효한 데이터를 찾지 못했습니다. 컬럼이나 시작 줄 번호를 다시 확인해주세요.');
-                return;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`API Error: ${response.status} ${errText}`);
+                }
+
+                const data = await response.json();
+                let jsonStr = data.candidates[0].content.parts[0].text;
+                
+                if(jsonStr.startsWith('```json')) {
+                    jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
+                }
+
+                const result = JSON.parse(jsonStr);
+
+                if(!Array.isArray(result) || result.length === 0) {
+                     alert('AI가 거래 내역을 찾지 못했습니다.');
+                     return;
+                }
+
+                // Assign IDs and insert
+                const newTransactions = result.map(tr => ({
+                    id: Date.now() + Math.random(),
+                    date: tr.date,
+                    merchant: tr.merchant,
+                    amount: tr.amount,
+                    type: tr.type,
+                    category: tr.category,
+                    source: 'AI엑셀봇'
+                }));
+
+                fullData.variable_transactions = [...newTransactions, ...fullData.variable_transactions];
+                saveToLocal();
+                init();
+                const sampleDate = newTransactions[0].date;
+                alert(`✨ AI 분석 완료: ${newTransactions.length}건 성공적으로 자동 분류 및 업로드!`);
+
+            } catch (error) {
+                console.error("Gemini CSV Error:", error);
+                alert(`AI 분석 중 오류가 발생했습니다.\n상세: ${error.message}`);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                document.getElementById('import-excel').value = ''; 
             }
-
-            fullData.variable_transactions = [...newTransactions, ...fullData.variable_transactions];
-            saveToLocal();
-            init();
-            const sampleDate = newTransactions[0].date;
-            alert(`${newTransactions.length}건 성공적으로 업로드!\n(인식된 첫 데이터 날짜: ${sampleDate}, 현재 필터와 일치하는지 확인해주세요.)`);
         }
 
         async function handleOCRUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // 로딩 표시
+            if (!userSettings.geminiApiKey) {
+                alert('먼저 ⚙️ 설정 탭에서 Gemini API Key를 입력하고 저장해주세요.');
+                return;
+            }
+
             const btn = event.target.previousElementSibling;
             const originalText = btn.innerText;
-            btn.innerText = '⌛ 준비 중...';
+            btn.innerText = '⌛ AI 분석 중...';
             btn.disabled = true;
 
-            let worker = null;
             try {
-                // Tesseract 워커 상세 설정 (더 안정적인 방식)
-                worker = await Tesseract.createWorker({
-                    logger: m => {
-                        console.log(m);
-                        if (m.status === 'recognizing') {
-                            btn.innerText = `⌛ 분석 중 (${Math.round(m.progress * 100)}%)`;
-                        } else if (m.status === 'loading tesseract core') {
-                            btn.innerText = '⌛ 코어 로딩 중...';
-                        }
-                    },
-                    errorHandler: err => console.error("Worker Error:", err)
+                // Read image as base64
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                await new Promise(resolve => reader.onload = resolve);
+                const base64Data = reader.result.split(',')[1];
+
+                // Call Gemini API
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${userSettings.geminiApiKey}`;
+                
+                const prompt = `
+이 이미지에서 영수증 정보를 추출해줘. 
+정확한 JSON 포맷으로만 응답해야 해. 마크다운(\`\`\`json)은 제외하고 순수 JSON 문자열만 줘.
+키는 무조건 다음과 같아야 해:
+- "date": 결제 날짜 (YYYY-MM-DD 형식)
+- "merchant": 가맹점 이름 (사업자/매장명)
+- "amount": 총 결제 금액 (숫자만, 콤마 제외)
+
+만약 값을 찾을 수 없으면 null로 해.
+`;
+
+                const body = {
+                    "contents": [{
+                        "parts":[
+                            {"text": prompt},
+                            {
+                                "inline_data": {
+                                    "mime_type": file.type,
+                                    "data": base64Data
+                                }
+                            }
+                        ]
+                    }],
+                    "generationConfig": {
+                        "response_mime_type": "application/json"
+                    }
+                };
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
                 });
 
-                await worker.loadLanguage('kor+eng');
-                await worker.initialize('kor+eng');
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`API Error: ${response.status} ${errText}`);
+                }
 
-                const { data: { text } } = await worker.recognize(file);
+                const data = await response.json();
+                
+                let jsonStr = data.candidates[0].content.parts[0].text;
+                // Clean up markdown if Gemini still returned it
+                if(jsonStr.startsWith('```json')) {
+                    jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
+                }
 
-                console.log("OCR 추출 텍스트:", text);
-                const parsedData = parseReceiptText(text);
+                const result = JSON.parse(jsonStr);
 
-                if (parsedData.amount > 0) {
-                    fillManualEntryForm(parsedData);
-                    alert('영수증 분석 완료! 수동 입력 탭에서 내용을 확인하고 저장해주세요.');
+                if (result.amount > 0) {
+                    fillManualEntryForm({
+                        date: result.date || new Date().toISOString().split('T')[0],
+                        merchant: result.merchant || '알 수 없음',
+                        amount: result.amount
+                    });
+                    alert('✨ 영수증 분석 완료! 수동 입력 탭에서 내용을 확인하고 저장해주세요.');
                 } else {
-                    alert('금액을 인식하지 못했습니다. 사진을 더 밝고 선명하게 찍어보시거나, 직접 입력해주세요.');
+                    alert('금액을 인식하지 못했습니다. 사진을 다시 찍거나 직접 입력해주세요.');
                     openTab(null, 'manual');
                 }
+
             } catch (error) {
-                console.error("OCR 상세 에러:", error);
-                alert(`이미지 분석 중 오류가 발생했습니다.\n가능한 원인: 인터넷 연결 불안정 또는 브라우저 호환성\n상세: ${error.message || 'Unknown Error'}`);
+                console.error("Gemini API Error:", error);
+                alert(`AI 분석 중 오류가 발생했습니다.\n상세: ${error.message}`);
             } finally {
-                if (worker) await worker.terminate();
                 btn.innerText = originalText;
                 btn.disabled = false;
-                event.target.value = ''; // 초기화
+                event.target.value = ''; 
             }
         }
 
-        function parseReceiptText(text) {
-            const data = {
-                date: new Date().toISOString().split('T')[0], // 기본값 오늘
-                merchant: '알 수 없음',
-                amount: 0
-            };
-
-            // 1. 금액 추출 (가장 큰 숫자 패턴 찾기)
-            // 보통 "금액", "합계", "결제금액" 근처에 있음
-            const amountMatches = text.replace(/,/g, '').match(/\d{3,9}/g);
-            if (amountMatches) {
-                // 영수증에서 가장 큰 숫자가 보통 합계인 경우가 많음 (단, 카드번호 제외 필요)
-                const numbers = amountMatches.map(Number).filter(n => n < 10000000); // 1억 이하만
-                if (numbers.length > 0) {
-                    data.amount = Math.max(...numbers);
-                }
-            }
-
-            // 2. 날짜 추출 (YYYY.MM.DD 또는 YY/MM/DD)
-            const dateMatch = text.match(/20\d{2}[.\-/]\d{2}[.\-/]\d{2}/) || text.match(/\d{2}[.\-/]\d{2}[.\-/]\d{2}/);
-            if (dateMatch) {
-                let d = dateMatch[0].replace(/[.\-/]/g, '-');
-                if (d.length === 8) d = '20' + d; // YY-MM-DD -> 20YY-MM-DD
-                data.date = d;
-            }
-
-            // 3. 가맹점 (첫 줄이나 특정 키워드 앞)
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1);
-            if (lines.length > 0) {
-                // 보통 첫 번째 줄이 상호명인 경우가 많음
-                data.merchant = lines[0];
-            }
-
-            return data;
-        }
+        // Removed obsolete manual parsing routines 
 
         function fillManualEntryForm(data) {
             openTab(null, 'manual');
