@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>프리미엄 가계부 v4.3</title>
+    <title>프리미엄 가계부 v4.4</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#38bdf8">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -62,6 +62,132 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        /* 엑셀 수동 매핑 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .excel-preview-container {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .excel-preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .excel-preview-table th,
+        .excel-preview-table td {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .excel-preview-table th {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-primary);
+            position: sticky;
+            top: 0;
+        }
+
+        .mapping-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0 2rem 0;
+        }
+
+        /* 엑셀 수동 매핑 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .excel-preview-container {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .excel-preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .excel-preview-table th,
+        .excel-preview-table td {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.75rem;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .excel-preview-table th {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-primary);
+            position: sticky;
+            top: 0;
+        }
+
+        .mapping-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .version-badge {
@@ -1413,65 +1539,119 @@
             reader.readAsArrayBuffer(file);
         }
 
-        function processExcelData(allRows, filename) {
+        let globalAllRows = [];
+        let globalFilename = "";
+
+        function showMappingModal(allRows, filename) {
+            globalAllRows = allRows;
+            globalFilename = filename;
+            const modal = document.getElementById('excel-mapping-modal');
+            const table = document.getElementById('excel-preview-table');
+            const selects = ['map-date', 'map-merchant', 'map-amount', 'map-category'];
+
+            // 미리보기 테이블 채우기 (최대 6줄)
+            let tableHtml = '<thead><tr><th>Col #</th>';
+            const maxCols = Math.max(...allRows.slice(0, 6).map(r => r.length));
+            for (let i = 0; i < maxCols; i++) tableHtml += `<th>${i}</th>`;
+            tableHtml += '</tr></thead><tbody>';
+
+            allRows.slice(0, 6).forEach((row, rIdx) => {
+                tableHtml += `<tr><td>Row ${rIdx}</td>`;
+                for (let i = 0; i < maxCols; i++) tableHtml += `<td>${row[i] || ''}</td>`;
+                tableHtml += '</tr>';
+            });
+            tableHtml += '</tbody>';
+            table.innerHTML = tableHtml;
+
+            // 셀렉트 박스 옵션 채우기
+            selects.forEach(id => {
+                const sel = document.getElementById(id);
+                const prevVal = sel.value;
+                sel.innerHTML = id === 'map-category' ? '<option value="-1">직접 지정 안 함</option>' : '';
+                for (let i = 0; i < maxCols; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.text = `Column ${i}`;
+                    sel.appendChild(option);
+                }
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        function closeMappingModal() {
+            document.getElementById('excel-mapping-modal').style.display = 'none';
+        }
+
+        function applyManualMapping() {
+            const colIndices = {
+                date: parseInt(document.getElementById('map-date').value),
+                merchant: parseInt(document.getElementById('map-merchant').value),
+                amount: parseInt(document.getElementById('map-amount').value),
+                category: parseInt(document.getElementById('map-category').value)
+            };
+
+            // 헤더가 몇 번째 줄인지 묻기 (기본 0 또는 직접 입력)
+            const headerRowPrompt = prompt("데이터가 시작되는 줄 번호(Row #)를 입력해주세요. (보통 제목줄 다음 번호)", "1");
+            const startIdx = parseInt(headerRowPrompt) || 0;
+
+            processExcelData(globalAllRows, globalFilename, colIndices, startIdx);
+            closeMappingModal();
+        }
+
+        function processExcelData(allRows, filename, manualColIndices = null, startFrom = -1) {
             if (!allRows || allRows.length === 0) {
                 alert('엑셀 파일에 데이터가 없습니다.');
                 return;
             }
 
-            // 컬럼명 매핑 후보군
-            const colMaps = {
-                date: ['거래일시', '거래일', '일자', 'Date', '날짜', '작성일', '일시', '승인일자', '사용일자', '이용일자', '결제일', '이용일'],
-                merchant: ['가맹점명', '거래처', '내역', '적요', 'Merchant', '가맹점', '사용처', '항목', '내용', '가맹점명/찾으신분', '거래대상', '이용처', '이용내역', '사용내역'],
-                amount: ['거래금액', '지출', '금액', 'Amount', '출금금액', '합계', '결제금액', '사용금액', '승인금액', '이용금액', '결제일합계'],
-                category: ['분류', '유형', 'Category', '카테고리', '구분', '업종']
-            };
-
-            // 1. 헤더 행(제목줄) 찾기
             let headerIdx = -1;
             let colIndices = { date: -1, merchant: -1, amount: -1, category: -1 };
 
-            for (let i = 0; i < Math.min(allRows.length, 20); i++) { // 상위 20줄 검사
-                const row = allRows[i];
-                if (!Array.isArray(row)) continue;
+            if (manualColIndices) {
+                headerIdx = startFrom - 1;
+                colIndices = manualColIndices;
+            } else {
+                // 자동 헤더 감지 로직
+                const colMaps = {
+                    date: ['거래일시', '거래일', '일자', 'Date', '날짜', '작성일', '일시', '승인일자', '사용일자', '이용일자', '결제일', '이용일'],
+                    merchant: ['가맹점명', '거래처', '내역', '적요', 'Merchant', '가맹점', '사용처', '항목', '내용', '가맹점명/찾으신분', '거래대상', '이용처', '이용내역', '사용내역'],
+                    amount: ['거래금액', '지출', '금액', 'Amount', '출금금액', '합계', '결제금액', '사용금액', '승인금액', '이용금액', '결제일합계'],
+                    category: ['분류', '유형', 'Category', '카테고리', '구분', '업종']
+                };
 
-                let matches = 0;
-                let tempIndices = { date: -1, merchant: -1, amount: -1, category: -1 };
-
-                row.forEach((cell, idx) => {
-                    if (!cell) return;
-                    const cellStr = cell.toString().replace(/\s/g, '').toLowerCase();
-
-                    Object.keys(colMaps).forEach(key => {
-                        if (colMaps[key].some(c => c.replace(/\s/g, '').toLowerCase() === cellStr)) {
-                            tempIndices[key] = idx;
-                            matches++;
-                        }
+                for (let i = 0; i < Math.min(allRows.length, 20); i++) {
+                    const row = allRows[i];
+                    if (!Array.isArray(row)) continue;
+                    let tempIndices = { date: -1, merchant: -1, amount: -1, category: -1 };
+                    row.forEach((cell, idx) => {
+                        if (!cell) return;
+                        const cellStr = cell.toString().replace(/\s/g, '').toLowerCase();
+                        Object.keys(colMaps).forEach(key => {
+                            if (colMaps[key].some(c => c.replace(/\s/g, '').toLowerCase() === cellStr)) {
+                                tempIndices[key] = idx;
+                            }
+                        });
                     });
-                });
-
-                // 필수 항목(날짜, 금액)이 있으면 헤더로 간주
-                if (tempIndices.date !== -1 && tempIndices.amount !== -1) {
-                    headerIdx = i;
-                    colIndices = tempIndices;
-                    break;
+                    if (tempIndices.date !== -1 && tempIndices.amount !== -1) {
+                        headerIdx = i;
+                        colIndices = tempIndices;
+                        break;
+                    }
                 }
             }
 
-            if (headerIdx === -1) {
-                const diagMsg = allRows.slice(0, 10).map((r, idx) => `[Row ${idx + 1}] ${r.join(' | ')}`).join('\n');
-                alert(`업로드된 파일에서 헤더(제목줄)를 찾을 수 없습니다.\n\n[파일 상단 내용]\n${diagMsg}\n\n날짜, 금액 컬럼이 명확한지 확인해주세요.`);
+            if (headerIdx === -1 && !manualColIndices) {
+                showMappingModal(allRows, filename);
                 return;
             }
 
-            // 헬퍼: 숫자 추출
             const cleanAmount = (val) => {
                 if (typeof val === 'number') return val;
                 if (!val) return 0;
                 return parseInt(val.toString().replace(/[^0-9-]/g, '')) || 0;
             };
 
-            // 헬퍼: 날짜 정규화
             const normalizeDate = (val) => {
                 if (!val) return new Date().toLocaleDateString('ko-KR').slice(5, -1).replace(/\. /g, '.');
                 if (typeof val === 'number') {
@@ -1480,38 +1660,35 @@
                 }
                 const str = val.toString().trim();
                 const dateParts = str.match(/(\d{1,2})[.\-/](\d{1,2})/);
-                if (dateParts) {
-                    return `${dateParts[1].padStart(2, '0')}.${dateParts[2].padStart(2, '0')}`;
-                }
+                if (dateParts) return `${dateParts[1].padStart(2, '0')}.${dateParts[2].padStart(2, '0')}`;
                 return str;
             };
 
-            // 2. 데이터 추출 (헤더 다음 줄부터)
             const dataRows = allRows.slice(headerIdx + 1);
             const newTransactions = dataRows.map(row => {
-                const rawAmount = row[colIndices.amount];
-                const amount = cleanAmount(rawAmount);
+                const amount = cleanAmount(row[colIndices.amount]);
+                if (isNaN(amount) || amount <= 0) return null;
 
                 return {
                     id: Date.now() + Math.random(),
                     date: normalizeDate(row[colIndices.date]),
                     merchant: row[colIndices.merchant] || '알 수 없음',
                     amount: amount,
-                    category: colIndices.category !== -1 ? (row[colIndices.category] || '기타') : '기타',
+                    category: (colIndices.category !== -1 && row[colIndices.category]) ? row[colIndices.category] : '기타',
                     source: filename,
                     type: 'expense'
                 };
-            }).filter(tr => tr.amount > 0);
+            }).filter(tr => tr !== null);
 
             if (newTransactions.length === 0) {
-                alert('유효한 거래 내역을 찾지 못했습니다.');
+                alert('유효한 데이터를 찾지 못했습니다. 컬럼이나 시작 줄 번호를 다시 확인해주세요.');
                 return;
             }
 
             fullData.variable_transactions = [...newTransactions, ...fullData.variable_transactions];
             saveToLocal();
             init();
-            alert(`${newTransactions.length}건의 데이터를 성공적으로 업로드했습니다!`);
+            alert(`${newTransactions.length}건 성공적으로 업로드!`);
         }
 
         async function handleOCRUpload(event) {
