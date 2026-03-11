@@ -1,0 +1,1241 @@
+{
+    "income": 2657794,
+    "fixed_expenses": [
+        {
+            "name": "대출이자",
+            "amount": 127390,
+            "category": "고정비"
+        },
+        {
+            "name": "월세",
+            "amount": 210000,
+            "category": "고정비"
+        },
+        {
+            "name": "자동이체",
+            "amount": 1408500,
+            "category": "고정비"
+        },
+        {
+            "name": "주택청약",
+            "amount": 20000,
+            "category": "고정비"
+        },
+        {
+            "name": "재직자공채",
+            "amount": 500000,
+            "category": "저축"
+        },
+        {
+            "name": "전기요금",
+            "amount": 21110,
+            "category": "통신/보험/공과금"
+        },
+        {
+            "name": "도시가스",
+            "amount": 53240,
+            "category": "통신/보험/공과금"
+        },
+        {
+            "name": "수도요금",
+            "amount": 10660,
+            "category": "통신/보험/공과금"
+        },
+        {
+            "name": "통신비",
+            "amount": 93000,
+            "category": "통신/보험/공과금"
+        },
+        {
+            "name": "교통비",
+            "amount": 50000,
+            "category": "교통"
+        },
+        {
+            "name": "구독",
+            "amount": 50000,
+            "category": "여가/여행"
+        }
+    ],
+    "variable_transactions": [
+        {
+            "date": "2025.12.10",
+            "merchant": "",
+            "amount": 10700,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.26",
+            "merchant": "",
+            "amount": 21180,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.27",
+            "merchant": "",
+            "amount": 33600,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.27",
+            "merchant": "",
+            "amount": 8000,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.28",
+            "merchant": "",
+            "amount": 9800,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.29",
+            "merchant": "",
+            "amount": 21354,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.29",
+            "merchant": "",
+            "amount": 18846,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.30",
+            "merchant": "",
+            "amount": 23900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.01",
+            "merchant": "",
+            "amount": 36000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.01",
+            "merchant": "",
+            "amount": 16650,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.02",
+            "merchant": "",
+            "amount": 61400,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.02",
+            "merchant": "",
+            "amount": 23500,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.03",
+            "merchant": "",
+            "amount": 17900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.04",
+            "merchant": "",
+            "amount": 18000,
+            "category": "생활/미용",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.04",
+            "merchant": "",
+            "amount": 8200,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.04",
+            "merchant": "",
+            "amount": 14000,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.05",
+            "merchant": "",
+            "amount": 6000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.05",
+            "merchant": "",
+            "amount": 4500,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.05",
+            "merchant": "",
+            "amount": 85000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.05",
+            "merchant": "",
+            "amount": 400,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.07",
+            "merchant": "",
+            "amount": 15700,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.07",
+            "merchant": "",
+            "amount": 29600,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.08",
+            "merchant": "",
+            "amount": 6900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.09",
+            "merchant": "",
+            "amount": 21690,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.09",
+            "merchant": "",
+            "amount": 12900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.11",
+            "merchant": "",
+            "amount": 21200,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.11",
+            "merchant": "",
+            "amount": 19800,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.13",
+            "merchant": "",
+            "amount": 133000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.14",
+            "merchant": "",
+            "amount": 74600,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.15",
+            "merchant": "",
+            "amount": 2900,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.16",
+            "merchant": "",
+            "amount": 1800,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.16",
+            "merchant": "",
+            "amount": 11900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.17",
+            "merchant": "",
+            "amount": 11500,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.20",
+            "merchant": "",
+            "amount": 199000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.20",
+            "merchant": "",
+            "amount": 106000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.17",
+            "merchant": "",
+            "amount": 33167,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.12",
+            "merchant": "",
+            "amount": 45960,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.26",
+            "merchant": "",
+            "amount": 17690,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.28",
+            "merchant": "",
+            "amount": 11470,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.30",
+            "merchant": "",
+            "amount": 8400,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.31",
+            "merchant": "",
+            "amount": 12000,
+            "category": "여가/여행",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.31",
+            "merchant": "",
+            "amount": 14200,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.05",
+            "merchant": "",
+            "amount": 26670,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.07",
+            "merchant": "",
+            "amount": 12290,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.08",
+            "merchant": "",
+            "amount": 9100,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.09",
+            "merchant": "",
+            "amount": 6900,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.09",
+            "merchant": "",
+            "amount": 13700,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.12",
+            "merchant": "",
+            "amount": 27000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.12",
+            "merchant": "",
+            "amount": 16000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.13",
+            "merchant": "",
+            "amount": 8100,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.13",
+            "merchant": "",
+            "amount": 16000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.14",
+            "merchant": "",
+            "amount": 7800,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.14",
+            "merchant": "",
+            "amount": 30920,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.15",
+            "merchant": "",
+            "amount": 2300,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.15",
+            "merchant": "",
+            "amount": 14530,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.15",
+            "merchant": "",
+            "amount": 6000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.17",
+            "merchant": "",
+            "amount": 324900,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.17",
+            "merchant": "",
+            "amount": 50000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.19",
+            "merchant": "",
+            "amount": 28100,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.19",
+            "merchant": "",
+            "amount": 309340,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.21",
+            "merchant": "",
+            "amount": 1000,
+            "category": "생활/미용",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.22",
+            "merchant": "",
+            "amount": 6200,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.22",
+            "merchant": "",
+            "amount": 18300,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.23",
+            "merchant": "",
+            "amount": 7800,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.23",
+            "merchant": "",
+            "amount": 10660,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.24",
+            "merchant": "",
+            "amount": 4600,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.25",
+            "merchant": "",
+            "amount": 32900,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.26",
+            "merchant": "",
+            "amount": 40900,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.27",
+            "merchant": "",
+            "amount": 18000,
+            "category": "생활/미용",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.27",
+            "merchant": "",
+            "amount": 17000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.27",
+            "merchant": "",
+            "amount": 15600,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.10",
+            "merchant": "",
+            "amount": 53240,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.25",
+            "merchant": "",
+            "amount": 21110,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.28",
+            "merchant": "",
+            "amount": 11900,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.29",
+            "merchant": "",
+            "amount": 28600,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.30",
+            "merchant": "",
+            "amount": 7900,
+            "category": "식비",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.30",
+            "merchant": "",
+            "amount": 22300,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.30",
+            "merchant": "",
+            "amount": 5200,
+            "category": "식비",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.31",
+            "merchant": "",
+            "amount": 36000,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.03",
+            "merchant": "",
+            "amount": 25500,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.03",
+            "merchant": "",
+            "amount": 15000,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.05",
+            "merchant": "",
+            "amount": 9970,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.06",
+            "merchant": "",
+            "amount": 25500,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.11",
+            "merchant": "",
+            "amount": 25500,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.12",
+            "merchant": "",
+            "amount": 9800,
+            "category": "식비",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.13",
+            "merchant": "",
+            "amount": 8200,
+            "category": "식비",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.14",
+            "merchant": "",
+            "amount": 93000,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "02.27",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 12500,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.24",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 50000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.24",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 10500,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.21",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 10000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.20",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 5000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.20",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 7000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "조태욱",
+            "amount": 300000,
+            "category": "식비",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.13",
+            "merchant": "우리카드결제",
+            "amount": 76,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.13",
+            "merchant": "우리카드결제",
+            "amount": 424,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.12",
+            "merchant": "우리카드결제",
+            "amount": 535816,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.11",
+            "merchant": "810107**42 ,260",
+            "amount": 20000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.09",
+            "merchant": "지에스수퍼(문정역점)",
+            "amount": 9960,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.09",
+            "merchant": "티머니",
+            "amount": 45000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.07",
+            "merchant": "핵밥둔촌점",
+            "amount": 10900,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.07",
+            "merchant": "아크PC아레나",
+            "amount": 5000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "01.13",
+            "merchant": "티머니",
+            "amount": 40000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.12",
+            "merchant": "810107**42 ,260",
+            "amount": 20000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.12",
+            "merchant": "우리카드결제",
+            "amount": 545354,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.12",
+            "merchant": "조태욱",
+            "amount": 330000,
+            "category": "식비",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.10",
+            "merchant": "네이버페이충전",
+            "amount": 10000,
+            "category": "쇼핑",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.02",
+            "merchant": "이니시스(빌링)",
+            "amount": 5000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.02",
+            "merchant": "이니시스(빌링)",
+            "amount": 10000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "02.28",
+            "merchant": "Apple",
+            "amount": 1100,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.23",
+            "merchant": "조태욱",
+            "amount": 30000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.21",
+            "merchant": "쿠팡와우월회비",
+            "amount": 7890,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "카카오페이",
+            "amount": 10000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "카카오페이",
+            "amount": 201300,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "조태욱",
+            "amount": 298020,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "나이스_페이레",
+            "amount": 5830,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "Apple",
+            "amount": 29000,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.15",
+            "merchant": "0123764424960",
+            "amount": 400900,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.15",
+            "merchant": "네이버파이낸셜",
+            "amount": 6450,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.13",
+            "merchant": "쿠팡",
+            "amount": 100000,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.13",
+            "merchant": "조태욱",
+            "amount": 500,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.11",
+            "merchant": "신한카드",
+            "amount": 1205330,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.09",
+            "merchant": "조진선",
+            "amount": 300000,
+            "category": "수입",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.08",
+            "merchant": "쿠팡",
+            "amount": 100000,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.05",
+            "merchant": "조태욱",
+            "amount": 580000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.05",
+            "merchant": "1월 급여",
+            "amount": 2357794,
+            "category": "수입",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "01.30",
+            "merchant": "SOOP페이",
+            "amount": 33000,
+            "category": "여가/여행",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.29",
+            "merchant": "Apple",
+            "amount": 1100,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.26",
+            "merchant": "카카오T일반택",
+            "amount": 11600,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.21",
+            "merchant": "쿠팡와우월회비",
+            "amount": 7890,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.20",
+            "merchant": "나이스_페이레",
+            "amount": 5830,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.19",
+            "merchant": "경찰청_조태욱",
+            "amount": 32000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.19",
+            "merchant": "Apple",
+            "amount": 29000,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.17",
+            "merchant": "조태욱",
+            "amount": 1000000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.12",
+            "merchant": "신한카드",
+            "amount": 1122842,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.12",
+            "merchant": "토스 조태욱",
+            "amount": 2000000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.08",
+            "merchant": "조진선",
+            "amount": 300000,
+            "category": "수입",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.05",
+            "merchant": "카카오페이",
+            "amount": 15500,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "12.30",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 24000,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.01",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 23900,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.02",
+            "merchant": "쿠팡이츠_쿠팡이츠",
+            "amount": 53900,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.03",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 41000,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.03",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 14000,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.08",
+            "merchant": "쿠팡이츠_쿠팡이츠",
+            "amount": 23500,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.10",
+            "merchant": "쿠팡이츠",
+            "amount": 21500,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.14",
+            "merchant": "쿠팡이츠_쿠팡이츠",
+            "amount": 22000,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.15",
+            "merchant": "쿠팡(쿠페이)",
+            "amount": 6740,
+            "category": "쇼핑",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.17",
+            "merchant": "쿠팡(쿠페이)",
+            "amount": 158800,
+            "category": "쇼핑",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.22",
+            "merchant": "야놀자",
+            "amount": 56000,
+            "category": "여가/여행",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.25",
+            "merchant": "쿠팡이츠_쿠팡이츠",
+            "amount": 10400,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "02.01",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 20800,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.06",
+            "merchant": "쿠팡(쿠페이)_쿠팡(쿠페이)",
+            "amount": 1670,
+            "category": "쇼핑",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "지에스25 제천휴게소점",
+            "amount": 6500,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "쿠팡(쿠페이)",
+            "amount": 6700,
+            "category": "쇼핑",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "모범카츠",
+            "amount": 35000,
+            "category": "기타",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "주식회사 강원랜드(하이원그랜",
+            "amount": 39000,
+            "category": "여가/여행",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.20",
+            "merchant": "GS25문정제일점",
+            "amount": 5000,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.20",
+            "merchant": "힐링헤어",
+            "amount": 18000,
+            "category": "생활/미용",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.21",
+            "merchant": "아성다이소",
+            "amount": 2000,
+            "category": "생활/미용",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.23",
+            "merchant": "쿠팡(쿠페이)_　쿠팡",
+            "amount": 44900,
+            "category": "쇼핑",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.25",
+            "merchant": "GS25문정제일점",
+            "amount": 4000,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.25",
+            "merchant": "씨유(CU) 뉴야탑노블리치점",
+            "amount": 6800,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.26",
+            "merchant": "GS더프레시 문정역점",
+            "amount": 30890,
+            "category": "기타",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.27",
+            "merchant": "버거킹 분당차병원점",
+            "amount": 8000,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        }
+    ],
+    "monthly_stats": {
+        "25": {
+            "income": 0,
+            "fixed": {
+                "교통비": 14550
+            }
+        },
+        "26": {
+            "income": 0,
+            "fixed": {}
+        },
+        "02": {
+            "income": 2657794,
+            "fixed": {
+                "자동이체": 1408500,
+                "대출이자": 127390
+            }
+        },
+        "01": {
+            "income": 300000,
+            "fixed": {
+                "교통비": 11000,
+                "자동이체": 1608500,
+                "대출이자": 127390
+            }
+        },
+        "12": {
+            "income": 0,
+            "fixed": {}
+        }
+    }
+}
