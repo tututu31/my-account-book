@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>프리미엄 가계부 v5.0</title>
+    <title>프리미엄 가계부 v5.2</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#38bdf8">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -453,6 +453,10 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        .settings-card.full-width {
+            grid-column: span 2;
+        }
+
         /* 필터 바 */
         .filter-bar {
             display: flex;
@@ -621,7 +625,20 @@
             .settings-grid,
             .manual-entry-container {
                 grid-template-columns: 1fr !important;
-                gap: 1rem !important;
+                gap: 1.25rem !important;
+            }
+
+            .settings-card.full-width {
+                grid-column: span 1 !important;
+            }
+
+            .form-group[style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+            }
+
+            .form-group[style*="display: flex"] button {
+                width: 100% !important;
             }
 
             .card {
@@ -885,7 +902,7 @@
                 </div>
 
                 <!-- 6-3. 데이터 관리 -->
-                <div class="settings-card" style="grid-column: span 2;">
+                <div class="settings-card full-width">
                     <h2 style="margin-bottom: 1.5rem;">💾 데이터 관리</h2>
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <button class="btn-submit" onclick="document.getElementById('import-excel').click()"
