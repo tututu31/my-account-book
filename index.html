@@ -799,6 +799,7 @@
                                 <th>가맹점</th>
                                 <th>금액</th>
                                 <th>카테고리</th>
+                                <th>관리</th>
                             </tr>
                         </thead>
                         <tbody><!-- JS로 채움 --></tbody>
@@ -1457,21 +1458,35 @@
                 const amtColor = isIncome ? 'var(--success)' : 'white';
                 const prefix = isIncome ? '<b>[입금]</b> ' : '';
 
-                const rowHTML = `
+                const rowHTMLTop = `
                     <td>${tr.date}</td>
                     <td>${prefix}${tr.merchant}</td>
                     <td style="font-weight:600; color:${amtColor};">${formatNum(tr.amount)}</td>
                     <td><span class="category-tag cat-${safeCat}">${tr.category}</span></td>
                 `;
 
+                const rowHTMLAll = `
+                    <td class="tx-date">${tr.date}</td>
+                    <td class="tx-merchant">${prefix}${tr.merchant}</td>
+                    <td class="tx-amount" style="font-weight:600; color:${amtColor};" data-val="${tr.amount}">${formatNum(tr.amount)}</td>
+                    <td class="tx-category"><span class="category-tag cat-${safeCat}">${tr.category}</span></td>
+                    <td>
+                        <button onclick="startEditTx('${tr.id}', this)" style="background:none; border:none; color:#38bdf8; cursor:pointer; margin-right:8px;">수정</button>
+                        <button onclick="deleteTx('${tr.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer;">삭제</button>
+                    </td>
+                `;
+
                 if (idx < 5) {
                     const row = document.createElement('tr');
-                    row.innerHTML = rowHTML;
+                    row.innerHTML = rowHTMLTop;
                     topTable.appendChild(row);
                 }
 
                 const rowAll = document.createElement('tr');
-                rowAll.innerHTML = rowHTML;
+                rowAll.id = `row-${tr.id}`;
+                rowAll.innerHTML = rowHTMLAll;
+                // Add tr raw data object to dataset for easy retrieval
+                rowAll.dataset.rawJson = JSON.stringify(tr);
                 allTable.appendChild(rowAll);
             });
 
@@ -1529,12 +1544,86 @@
             const rows = document.getElementById('all-expenses').querySelector('tbody').rows;
 
             for (let row of rows) {
-                const merchant = row.cells[1].innerText.toLowerCase();
-                const category = row.cells[3].innerText;
+                const merchant = row.querySelector('.tx-merchant').innerText.toLowerCase();
+                const category = row.querySelector('.tx-category').innerText;
                 const matchesSearch = merchant.includes(search);
                 const matchesCat = (cat === 'all' || category === cat);
                 row.style.display = (matchesSearch && matchesCat) ? "" : "none";
             }
+        }
+
+        function deleteTx(id) {
+            if(!confirm("정말로 이 내역을 삭제하시겠습니까?")) return;
+            
+            const vIdx = fullData.variable_transactions.findIndex(t => t.id == id);
+            if (vIdx !== -1) {
+                fullData.variable_transactions.splice(vIdx, 1);
+            } else {
+                const mIdx = manualData.findIndex(t => t.id == id);
+                if (mIdx !== -1) {
+                    manualData.splice(mIdx, 1);
+                    localStorage.setItem('manualFinances', JSON.stringify(manualData));
+                }
+            }
+            saveToLocal();
+            updateByMonth();
+        }
+
+        function startEditTx(id, btn) {
+            const tr = document.getElementById(`row-${id}`);
+            const raw = JSON.parse(tr.dataset.rawJson);
+
+            const tdDate = tr.querySelector('.tx-date');
+            const tdMerchant = tr.querySelector('.tx-merchant');
+            const tdAmount = tr.querySelector('.tx-amount');
+            const tdCategory = tr.querySelector('.tx-category');
+            const tdAction = btn.parentElement;
+
+            tdDate.innerHTML = `<input type="text" class="edit-input" style="width:60px; padding:2px; color:black;" value="${raw.date}">`;
+            tdMerchant.innerHTML = `<input type="text" class="edit-input" style="width:100px; padding:2px; color:black;" value="${raw.merchant}">`;
+            tdAmount.innerHTML = `<input type="number" class="edit-input" style="width:80px; padding:2px; color:black;" value="${raw.amount}">`;
+            tdCategory.innerHTML = `<input type="text" class="edit-input" style="width:80px; padding:2px; color:black;" value="${raw.category}">`;
+
+            tdAction.innerHTML = `
+                <button onclick="saveEditTx('${id}', this)" style="background:none; border:none; color:var(--success); cursor:pointer; margin-right:8px;">저장</button>
+                <button onclick="updateByMonth()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;">취소</button>
+            `;
+        }
+
+        function saveEditTx(id, btn) {
+            const tr = document.getElementById(`row-${id}`);
+            const inputs = tr.querySelectorAll('.edit-input');
+            const newDate = inputs[0].value.trim();
+            const newMerchant = inputs[1].value.trim();
+            const newAmount = parseInt(inputs[2].value.trim()) || 0;
+            const newCategory = inputs[3].value.trim() || '기타';
+            
+            // update data source
+            let target = fullData.variable_transactions.find(t => t.id == id);
+            let isManual = false;
+            if (!target) {
+                target = manualData.find(t => t.id == id);
+                isManual = true;
+            }
+
+            if (target) {
+                target.date = newDate;
+                target.merchant = newMerchant;
+                target.amount = newAmount;
+                target.category = newCategory;
+                if (newCategory === '수입') target.type = 'income'; 
+                else if (target.type === 'income') target.category = '수입';
+
+                if (isManual) {
+                    localStorage.setItem('manualFinances', JSON.stringify(manualData));
+                }
+                saveToLocal();
+                updateByMonth();
+            }
+        }
+
+        function saveToLocal() {
+            document.getElementById('finance-data').textContent = JSON.stringify(fullData);
         }
 
         function handleExcelUpload(event) {
@@ -1641,16 +1730,23 @@ ${csvContent}
                      return;
                 }
 
-                // Assign IDs and insert
-                const newTransactions = result.map(tr => ({
-                    id: Date.now() + Math.random(),
-                    date: tr.date,
-                    merchant: tr.merchant,
-                    amount: tr.amount,
-                    type: tr.type,
-                    category: tr.category,
-                    source: 'AI엑셀봇'
-                }));
+                // Assign IDs, filter out "조태욱", and insert
+                const newTransactions = result
+                    .filter(tr => !tr.merchant.includes("조태욱"))
+                    .map(tr => ({
+                        id: Date.now() + Math.random(),
+                        date: tr.date,
+                        merchant: tr.merchant,
+                        amount: tr.amount,
+                        type: tr.type,
+                        category: tr.category,
+                        source: 'AI엑셀봇'
+                    }));
+
+                if(newTransactions.length === 0) {
+                     alert('AI가 가계부에 반영할 유효한 거래 내역을 찾지 못했습니다. (본인 계좌 간 이체 등 제외됨)');
+                     return;
+                }
 
                 fullData.variable_transactions = [...newTransactions, ...fullData.variable_transactions];
                 saveToLocal();
@@ -1701,6 +1797,7 @@ ${csvContent}
 - "amount": 결제 금액 (숫자만, 콤마 제외)
 
 만약 내역이 여러 개면 여러 개의 객체를 배열에 담아줘.
+중요: 가맹점, 입금자명, 출금자명 등 내역 이름에 "조태욱"이 포함된 거래는 본인 계좌 간 이체이므로 추출 대상에서 제외해.
 `;
 
                 const body = {
@@ -1746,7 +1843,8 @@ ${csvContent}
 
                 let addedCount = 0;
                 result.forEach(item => {
-                    if (item.amount > 0) {
+                    const merchantName = item.merchant || '알 수 없음';
+                    if (item.amount > 0 && !merchantName.includes("조태욱")) {
                         const dateVal = item.date || new Date().toISOString().split('T')[0];
                         const dateParts = dateVal.split('-');
                         const formattedDate = `${dateParts[1]}.${dateParts[2]}`;
@@ -1757,7 +1855,7 @@ ${csvContent}
                             yearMonth: `${dateParts[0]}.${dateParts[1]}`, 
                             fullDate: dateVal,
                             type: 'expense',
-                            merchant: item.merchant || '알 수 없음',
+                            merchant: merchantName,
                             amount: item.amount,
                             category: '기타',
                             source: 'AI사진봇'
@@ -1774,7 +1872,7 @@ ${csvContent}
                     alert(`✨ ${addedCount}건의 결제 내역을 수동 입력에 자동 추가했습니다!`);
                     openTab(null, 'manual');
                 } else {
-                    alert('금액을 인식하지 못했습니다. 사진을 다시 찍거나 직접 입력해주세요.');
+                    alert('금액을 인식하지 못했거나 내 계좌 이체(조태욱) 거래만 감지되어 등록되지 않았습니다.');
                     openTab(null, 'manual');
                 }
 
