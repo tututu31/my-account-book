@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>프리미엄 가계부 v4.4</title>
+    <title>프리미엄 가계부 v4.6</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#38bdf8">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -65,6 +65,7 @@
         }
 
         /* 엑셀 수동 매핑 모달 스타일 */
+        /* 엑셀 수동 매핑 모달 스타일 */
         .modal {
             display: none;
             position: fixed;
@@ -124,21 +125,6 @@
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1.5rem;
             margin: 1.5rem 0 2rem 0;
-        }
-
-        /* 엑셀 수동 매핑 모달 스타일 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 10000;
-            backdrop-filter: blur(10px);
-            justify-content: center;
-            align-items: center;
         }
 
         .modal-content {
@@ -932,6 +918,51 @@
         </div>
     </div>
 
+    <!-- 엑셀 수동 매핑 모달 -->
+    <div id="excel-mapping-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"
+                style="margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem;">
+                <h2 style="font-size: 1.5rem; color: #38bdf8;">⚙️ 엑셀 수동 컬럼 매핑</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">
+                    자동 인식에 실패했습니다. 아래 엑셀 내용을 보고 각 정보를 가진 <strong>번호(Column)</strong>를 직접 선택해주세요.
+                </p>
+            </div>
+
+            <div class="excel-preview-container">
+                <table id="excel-preview-table" class="excel-preview-table"></table>
+            </div>
+
+            <div class="mapping-controls">
+                <div class="form-group">
+                    <label>📅 날짜 열</label>
+                    <select id="map-date" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>🏪 가맹점(내역) 열</label>
+                    <select id="map-merchant" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>💰 금액 열</label>
+                    <select id="map-amount" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>🏷️ 카테고리(선택)</label>
+                    <select id="map-category" class="form-control">
+                        <option value="-1">직접 지정 안 함</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn-submit" onclick="applyManualMapping()" style="background: var(--success);">매핑 적용 및
+                    업로드</button>
+                <button class="btn-submit" onclick="closeMappingModal()"
+                    style="background: var(--text-secondary);">취소</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 데이터 주입 영역 -->
 
 
@@ -967,30 +998,6 @@
         }));
         let categoryChart, trendChart;
 
-        function openTab(evt, tabName) {
-            const contents = document.getElementsByClassName("tab-content");
-            for (let i = 0; i < contents.length; i++) {
-                contents[i].style.display = "none";
-                contents[i].classList.remove("active");
-            }
-
-            const buttons = document.getElementsByClassName("tab-btn");
-            for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("active");
-
-            const target = document.getElementById(tabName);
-            if (target) {
-                target.style.display = "block";
-                target.classList.add("active");
-            }
-
-            if (evt && evt.currentTarget) {
-                evt.currentTarget.classList.add("active");
-            } else {
-                // 이벤트 없이 호출된 경우 해당 탭 버튼을 찾아 활성화
-                const btn = Array.from(buttons).find(b => b.getAttribute('onclick')?.includes(tabName));
-                if (btn) btn.classList.add("active");
-            }
-        }
 
         function init() {
             initTrendChart();
@@ -1803,7 +1810,7 @@
         const originalInit = init;
         init = function () {
             const savedData = localStorage.getItem('finance_data_v4');
-            const savedManual = localStorage.getItem('manual_records_v4');
+            const savedManual = localStorage.getItem('manualFinances');
 
             if (savedData) fullData = JSON.parse(savedData);
             if (savedManual) manualData = JSON.parse(savedManual);
