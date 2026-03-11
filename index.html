@@ -1390,6 +1390,9 @@
                 return;
             }
 
+            // 첫 번째 행의 키(컬럼명) 목록 추출 (진단용)
+            const actualKeys = Object.keys(rows[0]);
+
             // 헬퍼: 숫자 추출 (콤마, 원, ₩ 제거)
             const cleanAmount = (val) => {
                 if (typeof val === 'number') return val;
@@ -1401,33 +1404,38 @@
             const normalizeDate = (val) => {
                 if (!val) return new Date().toLocaleDateString('ko-KR').slice(5, -1).replace(/\. /g, '.');
 
-                // 엑셀 날짜 일련번호 처리 (숫자로 들어오는 경우)
+                // 엑셀 날짜 일련번호 처리
                 if (typeof val === 'number') {
                     const date = new Date((val - 25569) * 86400 * 1000);
                     return `${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`;
                 }
 
-                const str = val.toString().replace(/[^0-9.]/g, ''); // 숫자와 .만 남김
-                const parts = str.split('.');
-                if (parts.length >= 2) {
-                    const m = parts[parts.length - 2].padStart(2, '0');
-                    const d = parts[parts.length - 1].padStart(2, '0');
+                const str = val.toString().trim();
+                // YYYY-MM-DD 또는 YYYY.MM.DD 등 다양한 형식 대응
+                const dateParts = str.match(/(\d{1,2})[.\-/](\d{1,2})/);
+                if (dateParts) {
+                    const m = dateParts[1].padStart(2, '0');
+                    const d = dateParts[2].padStart(2, '0');
                     return `${m}.${d}`;
                 }
                 return str;
             };
 
-            // 컬럼명 매핑 후보군
+            // 컬럼명 매핑 후보군 (더 다양하게 추가)
             const colMaps = {
-                date: ['거래일시', '거래일', '일자', 'Date', '날짜', '작성일'],
-                merchant: ['가맹점명', '거래처', '내역', '적요', 'Merchant', '가맹점', '사용처', '항목'],
-                amount: ['거래금액', '지출', '금액', 'Amount', '출금금액', '합계', '결제금액'],
-                category: ['분류', '유형', 'Category', '카테고리', '구분']
+                date: ['거래일시', '거래일', '일자', 'Date', '날짜', '작성일', '일시', '승인일자', '사용일자'],
+                merchant: ['가맹점명', '거래처', '내역', '적요', 'Merchant', '가맹점', '사용처', '항목', '내용', '가맹점명/찾으신분', '거래대상'],
+                amount: ['거래금액', '지출', '금액', 'Amount', '출금금액', '합계', '결제금액', '사용금액', '승인금액', '이용금액'],
+                category: ['분류', '유형', 'Category', '카테고리', '구분', '업종']
             };
 
-            const findVal = (row, keys) => {
+            const findVal = (row, candidates) => {
                 const rowKeys = Object.keys(row);
-                const foundKey = keys.find(k => rowKeys.includes(k));
+                // 공백 제거 및 소문자화하여 비교 (더 유연한 매핑)
+                const foundKey = rowKeys.find(rk => {
+                    const cleanRK = rk.replace(/\s/g, '').toLowerCase();
+                    return candidates.some(c => c.replace(/\s/g, '').toLowerCase() === cleanRK);
+                });
                 return foundKey ? row[foundKey] : null;
             };
 
@@ -1442,19 +1450,19 @@
                     amount: amount,
                     category: findVal(row, colMaps.category) || '기타',
                     source: filename,
-                    type: 'expense' // 엑셀 업로드는 기본적으로 지출로 간주
+                    type: 'expense'
                 };
             }).filter(tr => tr.amount > 0);
 
             if (newTransactions.length === 0) {
-                alert('업로드된 파일에서 유효한 거래 데이터를 찾을 수 없습니다.\n필수 항목: 날짜, 가맹점, 금액\n(컬럼명이 일치하지 않을 수 있습니다.)');
+                const diagMsg = actualKeys.slice(0, 10).join(', ');
+                alert(`업로드된 파일에서 유효한 데이터를 찾을 수 없습니다.\n\n[확인된 컬럼명]\n${diagMsg}\n\n매핑되는 키워드가 없어 인식에 실패했습니다. 컬럼명을 확인해주세요.`);
                 return;
             }
 
-            // 기존 데이터와 병합
             fullData.variable_transactions = [...newTransactions, ...fullData.variable_transactions];
             saveToLocal();
-            init(); // 화면 갱신
+            init();
             alert(`${newTransactions.length}건의 데이터를 성공적으로 업로드했습니다!`);
         }
 
