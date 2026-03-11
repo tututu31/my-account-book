@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>프리미엄 가계부 v4.6</title>
+    <title>프리미엄 가계부 v4.7</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#38bdf8">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -998,6 +998,30 @@
         }));
         let categoryChart, trendChart;
 
+
+        function openTab(evt, tabName) {
+            const contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) {
+                contents[i].style.display = "none";
+                contents[i].classList.remove("active");
+            }
+
+            const buttons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("active");
+
+            const target = document.getElementById(tabName);
+            if (target) {
+                target.style.display = "block";
+                target.classList.add("active");
+            }
+
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add("active");
+            } else {
+                const btn = Array.from(buttons).find(b => b.getAttribute('onclick')?.includes(tabName));
+                if (btn) btn.classList.add("active");
+            }
+        }
 
         function init() {
             initTrendChart();
