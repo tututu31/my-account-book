@@ -1,15 +1,16 @@
 {
-    "name": "프리미엄 가계부",
-    "short_name": "가계부",
-    "start_url": "index.html",
-    "display": "standalone",
-    "background_color": "#0f172a",
-    "theme_color": "#38bdf8",
-    "icons": [
-        {
-            "src": "https://cdn-icons-png.flaticon.com/512/2652/2652218.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ]
+  "name": "프리미엄 가계부",
+  "short_name": "가계부",
+  "description": "스마트한 자산 관리를 위한 AI 가계부",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135673.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
