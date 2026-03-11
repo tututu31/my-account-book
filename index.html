@@ -1,0 +1,2552 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>프리미엄 가계부 v4.0</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#38bdf8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #38bdf8;
+            --accent-secondary: #818cf8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --glass: rgba(30, 41, 59, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 1rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 탭 시스템 스타일 */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.875rem;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9375rem;
+        }
+
+        .category-tag {
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .cat-고정비 {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-primary);
+        }
+
+        .cat-저축 {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .cat-식비 {
+            background: rgba(22, 163, 74, 0.2);
+            color: #4ade80;
+        }
+
+        .cat-쇼핑 {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+        }
+
+        .cat-생활_미용 {
+            background: rgba(236, 72, 153, 0.2);
+            color: #ec4899;
+        }
+
+        .cat-여가_여행 {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .cat-교통 {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .cat-통신_보험_공과금 {
+            background: rgba(20, 184, 166, 0.2);
+            color: #14b8a6;
+        }
+
+        .cat-수입 {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        /* 수동 입력 폼 스타일 */
+        .manual-entry-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        .entry-form-card {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            height: fit-content;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .manual-list-card {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .delete-btn {
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 1rem;
+        }
+
+        /* v4.0 추가 스타일: 예산 진행률 및 설정 탭 */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .settings-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .budget-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .insight-box {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .cat-기타 {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--text-secondary);
+        }
+
+        /* 상세 내역 필터 */
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            background: var(--bg-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-select {
+            background: var(--bg-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+        }
+
+        /* 달력 전용 스타일 */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            background: var(--card-bg);
+            padding: 1rem;
+            text-align: center;
+            font-weight: 700;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .calendar-day {
+            background: var(--card-bg);
+            min-height: 100px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            transition: background 0.2s;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .day-number {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .day-info {
+            font-size: 0.7rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .amount-in {
+            color: var(--success);
+        }
+
+        .amount-out {
+            color: var(--danger);
+        }
+
+        .selected-day-details {
+            margin-top: 1.5rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .summary-grid,
+            .analysis-grid,
+            .settings-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .tab-container {
+                overflow-x: auto;
+                padding-bottom: 5px;
+                justify-content: flex-start;
+            }
+
+            .tab-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>프리미엄 가계부</h1>
+                <p style="color: var(--text-secondary); margin-top: 0.25rem;">스마트한 자산 관리를 시작하세요</p>
+            </div>
+            <div id="date-now"
+                style="color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 1rem;">
+                <select id="month-selector" class="filter-select" onchange="updateByMonth()" style="margin-bottom: 0;">
+                    <option value="all">전체 보기</option>
+                    <option value="12">12월</option>
+                    <option value="01">1월</option>
+                    <option value="02">2월</option>
+                    <option value="03" selected>3월</option>
+                </select>
+                <span>2026.03.10</span>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'summary')">📊 종합 요약</button>
+            <button class="tab-btn" onclick="openTab(event, 'calendar')">📅 달력 보기</button>
+            <button class="tab-btn" onclick="openTab(event, 'details')">💳 상세 내역</button>
+            <button class="tab-btn" onclick="openTab(event, 'analysis')">📈 월별 분석</button>
+            <button class="tab-btn" onclick="openTab(event, 'manual')">➕ 수동 입력</button>
+            <button class="tab-btn" onclick="openTab(event, 'settings')">⚙️ 설정</button>
+        </div>
+
+        <!-- 탭 1: 종합 요약 -->
+        <div id="summary" class="tab-content active">
+            <div id="smart-insight" class="insight-box" style="display:none;">
+                <!-- 지능형 인사이트가 여기에 표시됨 -->
+            </div>
+            <div class="summary-grid">
+                <div class="card">
+                    <div class="card-title">월 수입</div>
+                    <div class="card-value" id="total-income">0원</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">총 지출</div>
+                    <div class="card-value" style="color: var(--danger);" id="total-expense">0원</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">남은 예산</div>
+                    <div class="card-value" id="balance" style="color: var(--success);">0원</div>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="card">
+                    <h3 style="margin-bottom: 1.5rem;">지출 카테고리 분포</h3>
+                    <div style="height: 300px; display: flex; justify-content: center;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 1.5rem;">카테고리별 예산 현황</h3>
+                    <div id="budget-progress-list" style="max-height: 300px; overflow-y: auto;">
+                        <!-- JS로 채워질 예정 -->
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 1.5rem;">고정 지출 내역</h3>
+                    <div id="fixed-expenses-list" style="max-height: 300px; overflow-y: auto; padding-right: 0.5rem;">
+                        <!-- JS로 채워질 예정 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">최근 큰 지출 상위 5건</h3>
+                <table id="top-expenses">
+                    <thead>
+                        <tr>
+                            <th>날짜</th>
+                            <th>가맹점</th>
+                            <th>금액</th>
+                            <th>카테고리</th>
+                        </tr>
+                    </thead>
+                    <tbody><!-- JS로 채움 --></tbody>
+                </table>
+            </div>
+        </div>
+        <!-- 탭 4: 달력 보기 -->
+        <div id="calendar" class="tab-content">
+            <div class="card">
+                <div class="calendar-grid" id="calendar-body">
+                    <!-- JS로 채워짐 -->
+                </div>
+                <div id="selected-day-info" class="selected-day-details">
+                    <p style="color: var(--text-secondary); text-align: center; margin-top: 1rem;">날짜를 선택하면 상세 내역이
+                        표시됩니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 2: 상세 내역 -->
+        <div id="details" class="tab-content">
+            <div class="card">
+                <div class="filter-bar">
+                    <input type="text" class="search-input" id="search-tx" placeholder="가맹점 검색..."
+                        onkeyup="filterTable()">
+                    <select class="filter-select" id="filter-cat" onchange="filterTable()">
+                        <option value="all">모든 카테고리</option>
+                    </select>
+                </div>
+                <div style="max-height: 600px; overflow-y: auto;">
+                    <table id="all-expenses">
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>가맹점</th>
+                                <th>금액</th>
+                                <th>카테고리</th>
+                            </tr>
+                        </thead>
+                        <tbody><!-- JS로 채움 --></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 3: 월별 분석 -->
+        <div id="analysis" class="tab-content">
+            <div class="card">
+                <h3 style="margin-bottom: 1.5rem;">월별 지출 추이</h3>
+                <div style="height: 400px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 5: 수동 입력 -->
+        <div id="manual" class="tab-content">
+            <div class="manual-entry-container">
+                <div class="entry-form-card">
+                    <h2 style="margin-bottom: 1.5rem;">새 거래 추가</h2>
+                    <div class="form-group">
+                        <label>날짜</label>
+                        <input type="date" id="m-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>구분</label>
+                        <select id="m-type" class="form-control">
+                            <option value="expense">지출</option>
+                            <option value="income">수입</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>내용 (가맹점명)</label>
+                        <input type="text" id="m-merchant" class="form-control" placeholder="교통비, 식비 등">
+                    </div>
+                    <div class="form-group">
+                        <label>금액</label>
+                        <input type="number" id="m-amount" class="form-control" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>카테고리</label>
+                        <select id="m-category" class="form-control">
+                            <option value="식비">식비</option>
+                            <option value="교통">교통</option>
+                            <option value="쇼핑">쇼핑</option>
+                            <option value="생활/미용">생활/미용</option>
+                            <option value="여가/여행">여가/여행</option>
+                            <option value="통신/보험/공과금">통신/보험/공과금</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    <button class="btn-submit" onclick="addManualEntry()">저장하기</button>
+                </div>
+
+                <div class="manual-list-card">
+                    <h2 style="margin-bottom: 1.5rem;">내가 직접 입력한 내역</h2>
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        <table id="manual-records-table">
+                            <thead>
+                                <tr>
+                                    <th>날짜</th>
+                                    <th>내용</th>
+                                    <th>금액</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="manual-entries-body">
+                                <!-- 데이터 유입 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 6: 설정 -->
+        <div id="settings" class="tab-content">
+            <div class="settings-grid">
+                <!-- 6-1. 예산 관리 -->
+                <div class="settings-card">
+                    <h2 style="margin-bottom: 1.5rem;">💰 카테고리별 예산 설정</h2>
+                    <div id="budget-settings-list">
+                        <!-- JS로 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 6-2. 고정비 관리 -->
+                <div class="settings-card">
+                    <h2 style="margin-bottom: 1.5rem;">⚙️ 고정비 관리</h2>
+                    <div class="form-group" style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="f-name" class="form-control" placeholder="항목명">
+                        <input type="number" id="f-amount" class="form-control" placeholder="금액">
+                        <button class="btn-submit" onclick="addFixedExpense()" style="width: 100px;">추가</button>
+                    </div>
+                    <div id="fixed-settings-list" style="margin-top: 1.5rem;">
+                        <!-- JS로 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 6-3. 데이터 관리 -->
+                <div class="settings-card" style="grid-column: span 2;">
+                    <h2 style="margin-bottom: 1.5rem;">💾 데이터 관리</h2>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn-submit" onclick="exportData()"
+                            style="background: var(--success); width: auto; padding: 0.75rem 1.5rem;">데이터 백업
+                            (JSON)</button>
+                        <button class="btn-submit" onclick="document.getElementById('import-file').click()"
+                            style="background: var(--text-secondary); width: auto; padding: 0.75rem 1.5rem;">데이터 복구
+                            (JSON)</button>
+                        <button class="btn-submit" onclick="exportCSV()"
+                            style="background: #eab308; width: auto; padding: 0.75rem 1.5rem;">거래 내역 내보내기 (CSV)</button>
+                        <input type="file" id="import-file" style="display:none;" onchange="importData(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 데이터 주입 영역 -->
+
+
+
+
+
+
+
+
+
+
+
+    <script id='finance-data' type='application/json'>{
+    "income": 2657794,
+    "fixed_expenses": [
+        {
+            "name": "대출이자",
+            "amount": 127390,
+            "category": "고정비"
+        },
+        {
+            "name": "월세",
+            "amount": 210000,
+            "category": "고정비"
+        },
+        {
+            "name": "자동이체",
+            "amount": 1408500,
+            "category": "고정비"
+        },
+        {
+            "name": "주택청약",
+            "amount": 20000,
+            "category": "고정비"
+        },
+        {
+            "name": "재직자공채",
+            "amount": 500000,
+            "category": "저축"
+        },
+        {
+            "name": "전기요금",
+            "amount": 21110,
+            "category": "통신/보험/공과금"
+        },
+        {
+            "name": "도시가스",
+            "amount": 53240,
+            "category": "통신/보험/공과금"
+        },
+        {
+            "name": "수도요금",
+            "amount": 10660,
+            "category": "통신/보험/공과금"
+        },
+        {
+            "name": "통신비",
+            "amount": 93000,
+            "category": "통신/보험/공과금"
+        },
+        {
+            "name": "교통비",
+            "amount": 50000,
+            "category": "교통"
+        },
+        {
+            "name": "구독",
+            "amount": 50000,
+            "category": "여가/여행"
+        }
+    ],
+    "variable_transactions": [
+        {
+            "date": "2025.12.10",
+            "merchant": "",
+            "amount": 10700,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.26",
+            "merchant": "",
+            "amount": 21180,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.27",
+            "merchant": "",
+            "amount": 33600,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.27",
+            "merchant": "",
+            "amount": 8000,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.28",
+            "merchant": "",
+            "amount": 9800,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.29",
+            "merchant": "",
+            "amount": 21354,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.29",
+            "merchant": "",
+            "amount": 18846,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.11.30",
+            "merchant": "",
+            "amount": 23900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.01",
+            "merchant": "",
+            "amount": 36000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.01",
+            "merchant": "",
+            "amount": 16650,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.02",
+            "merchant": "",
+            "amount": 61400,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.02",
+            "merchant": "",
+            "amount": 23500,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.03",
+            "merchant": "",
+            "amount": 17900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.04",
+            "merchant": "",
+            "amount": 18000,
+            "category": "생활/미용",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.04",
+            "merchant": "",
+            "amount": 8200,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.04",
+            "merchant": "",
+            "amount": 14000,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.05",
+            "merchant": "",
+            "amount": 6000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.05",
+            "merchant": "",
+            "amount": 4500,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.05",
+            "merchant": "",
+            "amount": 85000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.05",
+            "merchant": "",
+            "amount": 400,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.07",
+            "merchant": "",
+            "amount": 15700,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.07",
+            "merchant": "",
+            "amount": 29600,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.08",
+            "merchant": "",
+            "amount": 6900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.09",
+            "merchant": "",
+            "amount": 21690,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.09",
+            "merchant": "",
+            "amount": 12900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.11",
+            "merchant": "",
+            "amount": 21200,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.11",
+            "merchant": "",
+            "amount": 19800,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.13",
+            "merchant": "",
+            "amount": 133000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.14",
+            "merchant": "",
+            "amount": 74600,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.15",
+            "merchant": "",
+            "amount": 2900,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.16",
+            "merchant": "",
+            "amount": 1800,
+            "category": "식비",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.16",
+            "merchant": "",
+            "amount": 11900,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.17",
+            "merchant": "",
+            "amount": 11500,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.20",
+            "merchant": "",
+            "amount": 199000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.20",
+            "merchant": "",
+            "amount": 106000,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.17",
+            "merchant": "",
+            "amount": 33167,
+            "category": "기타",
+            "source": "26년1월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.12",
+            "merchant": "",
+            "amount": 45960,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.26",
+            "merchant": "",
+            "amount": 17690,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.28",
+            "merchant": "",
+            "amount": 11470,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.30",
+            "merchant": "",
+            "amount": 8400,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.31",
+            "merchant": "",
+            "amount": 12000,
+            "category": "여가/여행",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2025.12.31",
+            "merchant": "",
+            "amount": 14200,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.05",
+            "merchant": "",
+            "amount": 26670,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.07",
+            "merchant": "",
+            "amount": 12290,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.08",
+            "merchant": "",
+            "amount": 9100,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.09",
+            "merchant": "",
+            "amount": 6900,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.09",
+            "merchant": "",
+            "amount": 13700,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.12",
+            "merchant": "",
+            "amount": 27000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.12",
+            "merchant": "",
+            "amount": 16000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.13",
+            "merchant": "",
+            "amount": 8100,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.13",
+            "merchant": "",
+            "amount": 16000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.14",
+            "merchant": "",
+            "amount": 7800,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.14",
+            "merchant": "",
+            "amount": 30920,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.15",
+            "merchant": "",
+            "amount": 2300,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.15",
+            "merchant": "",
+            "amount": 14530,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.15",
+            "merchant": "",
+            "amount": 6000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.17",
+            "merchant": "",
+            "amount": 324900,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.17",
+            "merchant": "",
+            "amount": 50000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.19",
+            "merchant": "",
+            "amount": 28100,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.19",
+            "merchant": "",
+            "amount": 309340,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.21",
+            "merchant": "",
+            "amount": 1000,
+            "category": "생활/미용",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.22",
+            "merchant": "",
+            "amount": 6200,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.22",
+            "merchant": "",
+            "amount": 18300,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.23",
+            "merchant": "",
+            "amount": 7800,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.23",
+            "merchant": "",
+            "amount": 10660,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.24",
+            "merchant": "",
+            "amount": 4600,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.25",
+            "merchant": "",
+            "amount": 32900,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.26",
+            "merchant": "",
+            "amount": 40900,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.27",
+            "merchant": "",
+            "amount": 18000,
+            "category": "생활/미용",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.27",
+            "merchant": "",
+            "amount": 17000,
+            "category": "기타",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.27",
+            "merchant": "",
+            "amount": 15600,
+            "category": "식비",
+            "source": "26년2월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.10",
+            "merchant": "",
+            "amount": 53240,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.25",
+            "merchant": "",
+            "amount": 21110,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.28",
+            "merchant": "",
+            "amount": 11900,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.29",
+            "merchant": "",
+            "amount": 28600,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.30",
+            "merchant": "",
+            "amount": 7900,
+            "category": "식비",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.30",
+            "merchant": "",
+            "amount": 22300,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.30",
+            "merchant": "",
+            "amount": 5200,
+            "category": "식비",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.01.31",
+            "merchant": "",
+            "amount": 36000,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.03",
+            "merchant": "",
+            "amount": 25500,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.03",
+            "merchant": "",
+            "amount": 15000,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.05",
+            "merchant": "",
+            "amount": 9970,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.06",
+            "merchant": "",
+            "amount": 25500,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.11",
+            "merchant": "",
+            "amount": 25500,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.12",
+            "merchant": "",
+            "amount": 9800,
+            "category": "식비",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.13",
+            "merchant": "",
+            "amount": 8200,
+            "category": "식비",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "2026.02.14",
+            "merchant": "",
+            "amount": 93000,
+            "category": "기타",
+            "source": "26년3월 이용대금명세서(신용카드).xlsx"
+        },
+        {
+            "date": "02.27",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 12500,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.24",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 50000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.24",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 10500,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.21",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 10000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.20",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 5000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.20",
+            "merchant": "이니시스(빌링)_2",
+            "amount": 7000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "조태욱",
+            "amount": 300000,
+            "category": "식비",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.13",
+            "merchant": "우리카드결제",
+            "amount": 76,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.13",
+            "merchant": "우리카드결제",
+            "amount": 424,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.12",
+            "merchant": "우리카드결제",
+            "amount": 535816,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.11",
+            "merchant": "810107**42 ,260",
+            "amount": 20000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.09",
+            "merchant": "지에스수퍼(문정역점)",
+            "amount": 9960,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.09",
+            "merchant": "티머니",
+            "amount": 45000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.07",
+            "merchant": "핵밥둔촌점",
+            "amount": 10900,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "02.07",
+            "merchant": "아크PC아레나",
+            "amount": 5000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155602).xlsx"
+        },
+        {
+            "date": "01.13",
+            "merchant": "티머니",
+            "amount": 40000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.12",
+            "merchant": "810107**42 ,260",
+            "amount": 20000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.12",
+            "merchant": "우리카드결제",
+            "amount": 545354,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.12",
+            "merchant": "조태욱",
+            "amount": 330000,
+            "category": "식비",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.10",
+            "merchant": "네이버페이충전",
+            "amount": 10000,
+            "category": "쇼핑",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.02",
+            "merchant": "이니시스(빌링)",
+            "amount": 5000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "01.02",
+            "merchant": "이니시스(빌링)",
+            "amount": 10000,
+            "category": "기타",
+            "source": "KB_거래내역조회(434702-01-307259_20260310155614).xlsx"
+        },
+        {
+            "date": "02.28",
+            "merchant": "Apple",
+            "amount": 1100,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.23",
+            "merchant": "조태욱",
+            "amount": 30000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.21",
+            "merchant": "쿠팡와우월회비",
+            "amount": 7890,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "카카오페이",
+            "amount": 10000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "카카오페이",
+            "amount": 201300,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "조태욱",
+            "amount": 298020,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "나이스_페이레",
+            "amount": 5830,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.19",
+            "merchant": "Apple",
+            "amount": 29000,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.15",
+            "merchant": "0123764424960",
+            "amount": 400900,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.15",
+            "merchant": "네이버파이낸셜",
+            "amount": 6450,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.13",
+            "merchant": "쿠팡",
+            "amount": 100000,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.13",
+            "merchant": "조태욱",
+            "amount": 500,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.11",
+            "merchant": "신한카드",
+            "amount": 1205330,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.09",
+            "merchant": "조진선",
+            "amount": 300000,
+            "category": "수입",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.08",
+            "merchant": "쿠팡",
+            "amount": 100000,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.05",
+            "merchant": "조태욱",
+            "amount": 580000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "02.05",
+            "merchant": "1월 급여",
+            "amount": 2357794,
+            "category": "수입",
+            "source": "신한은행_거래내역조회_20260310154907.xls"
+        },
+        {
+            "date": "01.30",
+            "merchant": "SOOP페이",
+            "amount": 33000,
+            "category": "여가/여행",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.29",
+            "merchant": "Apple",
+            "amount": 1100,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.26",
+            "merchant": "카카오T일반택",
+            "amount": 11600,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.21",
+            "merchant": "쿠팡와우월회비",
+            "amount": 7890,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.20",
+            "merchant": "나이스_페이레",
+            "amount": 5830,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.19",
+            "merchant": "경찰청_조태욱",
+            "amount": 32000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.19",
+            "merchant": "Apple",
+            "amount": 29000,
+            "category": "쇼핑",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.17",
+            "merchant": "조태욱",
+            "amount": 1000000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.12",
+            "merchant": "신한카드",
+            "amount": 1122842,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.12",
+            "merchant": "토스 조태욱",
+            "amount": 2000000,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.08",
+            "merchant": "조진선",
+            "amount": 300000,
+            "category": "수입",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "01.05",
+            "merchant": "카카오페이",
+            "amount": 15500,
+            "category": "기타",
+            "source": "신한은행_거래내역조회_20260310154941.xls"
+        },
+        {
+            "date": "12.30",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 24000,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.01",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 23900,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.02",
+            "merchant": "쿠팡이츠_쿠팡이츠",
+            "amount": 53900,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.03",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 41000,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.03",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 14000,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.08",
+            "merchant": "쿠팡이츠_쿠팡이츠",
+            "amount": 23500,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.10",
+            "merchant": "쿠팡이츠",
+            "amount": 21500,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.14",
+            "merchant": "쿠팡이츠_쿠팡이츠",
+            "amount": 22000,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.15",
+            "merchant": "쿠팡(쿠페이)",
+            "amount": 6740,
+            "category": "쇼핑",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.17",
+            "merchant": "쿠팡(쿠페이)",
+            "amount": 158800,
+            "category": "쇼핑",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.22",
+            "merchant": "야놀자",
+            "amount": 56000,
+            "category": "여가/여행",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "01.25",
+            "merchant": "쿠팡이츠_쿠팡이츠",
+            "amount": 10400,
+            "category": "식비",
+            "source": "우리1월.xlsx"
+        },
+        {
+            "date": "02.01",
+            "merchant": "쿠팡이츠_　쿠팡",
+            "amount": 20800,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.06",
+            "merchant": "쿠팡(쿠페이)_쿠팡(쿠페이)",
+            "amount": 1670,
+            "category": "쇼핑",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "지에스25 제천휴게소점",
+            "amount": 6500,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "쿠팡(쿠페이)",
+            "amount": 6700,
+            "category": "쇼핑",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "모범카츠",
+            "amount": 35000,
+            "category": "기타",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.19",
+            "merchant": "주식회사 강원랜드(하이원그랜",
+            "amount": 39000,
+            "category": "여가/여행",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.20",
+            "merchant": "GS25문정제일점",
+            "amount": 5000,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.20",
+            "merchant": "힐링헤어",
+            "amount": 18000,
+            "category": "생활/미용",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.21",
+            "merchant": "아성다이소",
+            "amount": 2000,
+            "category": "생활/미용",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.23",
+            "merchant": "쿠팡(쿠페이)_　쿠팡",
+            "amount": 44900,
+            "category": "쇼핑",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.25",
+            "merchant": "GS25문정제일점",
+            "amount": 4000,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.25",
+            "merchant": "씨유(CU) 뉴야탑노블리치점",
+            "amount": 6800,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.26",
+            "merchant": "GS더프레시 문정역점",
+            "amount": 30890,
+            "category": "기타",
+            "source": "우리2월.xlsx"
+        },
+        {
+            "date": "02.27",
+            "merchant": "버거킹 분당차병원점",
+            "amount": 8000,
+            "category": "식비",
+            "source": "우리2월.xlsx"
+        }
+    ],
+    "monthly_stats": {
+        "25": {
+            "income": 0,
+            "fixed": {
+                "교통비": 14550
+            }
+        },
+        "26": {
+            "income": 0,
+            "fixed": {}
+        },
+        "02": {
+            "income": 2657794,
+            "fixed": {
+                "자동이체": 1408500,
+                "대출이자": 127390
+            }
+        },
+        "01": {
+            "income": 300000,
+            "fixed": {
+                "교통비": 11000,
+                "자동이체": 1608500,
+                "대출이자": 127390
+            }
+        },
+        "12": {
+            "income": 0,
+            "fixed": {}
+        }
+    }
+}</script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+        let fullData = JSON.parse(document.getElementById('finance-data').textContent);
+        let manualData = JSON.parse(localStorage.getItem('manualFinances') || '[]');
+        let userSettings = JSON.parse(localStorage.getItem('userSettings_v4') || JSON.stringify({
+            budgets: { "식비": 600000, "교통": 150000, "쇼핑": 200000, "생활_미용": 100000, "통신_보험_공과금": 300000, "기타": 100000 },
+            fixedExpenses: fullData.fixed_expenses // 초기값은 서버 데이터
+        }));
+        let categoryChart, trendChart;
+
+        function openTab(evt, tabName) {
+            const contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) {
+                contents[i].style.display = "none";
+                contents[i].classList.remove("active");
+            }
+
+            const buttons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("active");
+
+            const target = document.getElementById(tabName);
+            target.style.display = "block";
+            target.classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function init() {
+            initTrendChart();
+            renderManualList();
+            renderSettings();
+            updateByMonth();
+
+            // 오늘 날짜 기본 세팅
+            const today = new Date();
+            document.getElementById('m-date').value = today.toISOString().split('T')[0];
+
+            // 초기 탭 설정
+            document.querySelectorAll('.tab-content').forEach(tc => {
+                if (!tc.classList.contains('active')) tc.style.display = 'none';
+            });
+        }
+
+        // v4.0 설정 탭 렌더링
+        function renderSettings() {
+            // 예산 설정 리스트
+            const bList = document.getElementById('budget-settings-list');
+            bList.innerHTML = '';
+            Object.keys(userSettings.budgets).forEach(cat => {
+                const item = document.createElement('div');
+                item.className = 'budget-item';
+                item.innerHTML = `
+                    <span style="font-weight:600;">${cat.replace('_', '/')}</span>
+                    <input type="number" class="form-control" style="width:150px;" 
+                        value="${userSettings.budgets[cat]}" 
+                        onchange="updateBudget('${cat}', this.value)">
+                `;
+                bList.appendChild(item);
+            });
+
+            // 고정비 설정 리스트
+            const fList = document.getElementById('fixed-settings-list');
+            fList.innerHTML = '';
+            userSettings.fixedExpenses.forEach((fe, idx) => {
+                const item = document.createElement('div');
+                item.style = "display:flex; justify-content:space-between; margin-bottom:0.5rem; padding:0.5rem; background:rgba(255,255,255,0.02); border-radius:4px;";
+                item.innerHTML = `
+                    <span>${fe.name} (${formatNum(fe.amount)})</span>
+                    <span class="delete-btn" onclick="deleteFixedExpense(${idx})">삭제</span>
+                `;
+                fList.appendChild(item);
+            });
+        }
+
+        function updateBudget(cat, val) {
+            userSettings.budgets[cat] = parseInt(val) || 0;
+            saveSettings();
+            updateByMonth();
+        }
+
+        function addFixedExpense() {
+            const name = document.getElementById('f-name').value;
+            const amount = parseInt(document.getElementById('f-amount').value);
+            if (!name || isNaN(amount)) return alert('올바른 값을 입력하세요.');
+
+            userSettings.fixedExpenses.push({ name, amount, category: '고정비' });
+            saveSettings();
+            renderSettings();
+            updateByMonth();
+            document.getElementById('f-name').value = '';
+            document.getElementById('f-amount').value = '';
+        }
+
+        function deleteFixedExpense(idx) {
+            userSettings.fixedExpenses.splice(idx, 1);
+            saveSettings();
+            renderSettings();
+            updateByMonth();
+        }
+
+        function saveSettings() {
+            localStorage.setItem('userSettings_v4', JSON.stringify(userSettings));
+        }
+
+        // 데이터 백업 및 복구
+        function exportData() {
+            const data = { manualData, userSettings };
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `가계부_백업_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function importData(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                const data = JSON.parse(evt.target.result);
+                if (data.manualData) {
+                    manualData = data.manualData;
+                    userSettings = data.userSettings;
+                    localStorage.setItem('manualFinances', JSON.stringify(manualData));
+                    saveSettings();
+                    location.reload();
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportCSV() {
+            const combinedTx = [...fullData.variable_transactions, ...manualData];
+            let csv = "날짜,가맹점,금액,카테고리,출처\n";
+            combinedTx.forEach(t => {
+                csv += `${t.date},${t.merchant},${t.amount},${t.category},${t.source}\n`;
+            });
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `거래내역_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        function addManualEntry() {
+            const dateVal = document.getElementById('m-date').value;
+            const typeVal = document.getElementById('m-type').value;
+            const merchantVal = document.getElementById('m-merchant').value;
+            const amountVal = parseInt(document.getElementById('m-amount').value);
+            const categoryVal = document.getElementById('m-category').value;
+
+            if (!dateVal || !merchantVal || isNaN(amountVal)) {
+                alert('모든 항목을 올바르게 입력해주세요.');
+                return;
+            }
+
+            const dateParts = dateVal.split('-');
+            const formattedDate = `${dateParts[1]}.${dateParts[2]}`; // MM.DD 형식
+
+            const newEntry = {
+                id: Date.now(),
+                date: formattedDate,
+                yearMonth: `${dateParts[0]}.${dateParts[1]}`, // YYYY.MM
+                fullDate: dateVal,
+                type: typeVal,
+                merchant: merchantVal,
+                amount: amountVal,
+                category: typeVal === 'income' ? '수입' : categoryVal,
+                source: '수동입력'
+            };
+
+            manualData.push(newEntry);
+            localStorage.setItem('manualFinances', JSON.stringify(manualData));
+
+            document.getElementById('m-merchant').value = '';
+            document.getElementById('m-amount').value = '';
+
+            renderManualList();
+            updateByMonth();
+            initTrendChart();
+            alert('저장되었습니다.');
+        }
+
+        function deleteManualEntry(id) {
+            if (confirm('삭제하시겠습니까?')) {
+                manualData = manualData.filter(item => item.id !== id);
+                localStorage.setItem('manualFinances', JSON.stringify(manualData));
+                renderManualList();
+                updateByMonth();
+                initTrendChart();
+            }
+        }
+
+        function renderManualList() {
+            const body = document.getElementById('manual-entries-body');
+            if (!body) return;
+            body.innerHTML = '';
+            manualData.sort((a, b) => b.id - a.id).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.fullDate}</td>
+                    <td>${item.merchant}</td>
+                    <td style="color:${item.type === 'income' ? 'var(--success)' : 'white'}">${formatNum(item.amount)}</td>
+                    <td><span class="delete-btn" onclick="deleteManualEntry(${item.id})">삭제</span></td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function formatNum(num) {
+            return new Intl.NumberFormat('ko-KR').format(num) + '원';
+        }
+
+
+        function updateByMonth() {
+            const selectedMonth = document.getElementById('month-selector').value;
+
+            // 1. 수입 및 고정비 동적 결정 (사용자 설정 우선)
+            let currentIncome = fullData.income;
+            let currentFixedExpenses = userSettings.fixedExpenses;
+
+            if (selectedMonth !== 'all' && fullData.monthly_stats && fullData.monthly_stats[selectedMonth]) {
+                const stats = fullData.monthly_stats[selectedMonth];
+                if (stats.income > 0) currentIncome = stats.income;
+                // 월별 특화 고정비가 엑셀 데이터에 있으면 사용자 설정과 병합 고려할 수 있으나 UI 편의상 사용자 설정 유지
+            }
+
+            // 2. 데이터 필터링 (원본 + 수동입력)
+            const combinedTx = [...fullData.variable_transactions, ...manualData];
+            const filteredTx = selectedMonth === 'all'
+                ? combinedTx
+                : combinedTx.filter(tr => tr.date.startsWith(selectedMonth));
+
+            // 수입/지출 합계 계산
+            const manualIncomes = manualData.filter(m => m.type === 'income');
+            const filteredManualIncomes = selectedMonth === 'all'
+                ? manualIncomes
+                : manualIncomes.filter(m => m.date.startsWith(selectedMonth));
+
+            let monthTotalIncome = currentIncome;
+            if (selectedMonth !== 'all') {
+                const manualIncomeForMonth = filteredManualIncomes.reduce((acc, curr) => acc + curr.amount, 0);
+                monthTotalIncome = currentIncome + manualIncomeForMonth;
+            }
+
+            const fixedTotal = currentFixedExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+            const variableTotal = filteredTx.filter(t => t.category !== '수입').reduce((acc, curr) => acc + curr.amount, 0);
+            const totalExpense = fixedTotal + variableTotal;
+
+            // 지능형 인사이트 & 예산 진행률
+            renderInsights(monthTotalIncome, totalExpense, filteredTx);
+
+            // 요약 수치 업데이트
+            document.getElementById('total-income').innerText = formatNum(monthTotalIncome);
+            document.getElementById('total-expense').innerText = formatNum(totalExpense);
+            document.getElementById('balance').innerText = formatNum(monthTotalIncome - totalExpense);
+
+            // 카테고리 분포 차트 업데이트
+            const catMap = {};
+            [...currentFixedExpenses, ...filteredTx].forEach(item => {
+                if (item.category === '수입') return;
+                catMap[item.category] = (catMap[item.category] || 0) + item.amount;
+            });
+
+            if (categoryChart) categoryChart.destroy();
+            categoryChart = new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(catMap).map(k => k.replace('_', '/')),
+                    datasets: [{
+                        data: Object.values(catMap),
+                        backgroundColor: ['#38bdf8', '#22c55e', '#a855f7', '#ec4899', '#f59e0b', '#3b82f6', '#14b8a6', '#94a3b8'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
+            });
+
+            // 고정비 리스트 업데이트
+            const list = document.getElementById('fixed-expenses-list');
+            list.innerHTML = '';
+            currentFixedExpenses.forEach(ex => {
+                const row = document.createElement('div');
+                row.style = "display:flex; justify-content:space-between; padding:0.75rem 0; border-bottom:1px solid rgba(255,255,255,0.05);";
+                row.innerHTML = `<span>${ex.name} <small style="color:var(--text-secondary)">(${ex.category})</small></span><b>${formatNum(ex.amount)}</b>`;
+                list.appendChild(row);
+            });
+
+            renderTables(filteredTx);
+            renderCalendar(selectedMonth, filteredTx);
+        }
+
+        // v4.0 지능형 분석 및 예산 UI
+        function renderInsights(income, expense, txList) {
+            const today = new Date();
+            const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+            const currentDay = today.getDate();
+            const selectedMonthStr = document.getElementById('month-selector').value;
+
+            // 1. 지능형 인사이트 (예측 + 전월 대비)
+            let insightHtml = "";
+
+            // A. 지출 예측 (Forecast)
+            const dailyAvg = expense / currentDay;
+            const projectedExpense = Math.floor(dailyAvg * daysInMonth);
+
+            insightHtml += `💡 <b>스마트 지출 레포트:</b> 현재 하루 평균 <b>${formatNum(Math.floor(dailyAvg))}</b>를 소비하고 있습니다.<br>`;
+            insightHtml += `월말까지 이 추세가 계속되면 총 <b>${formatNum(projectedExpense)}</b>를 지출할 것으로 예측됩니다.`;
+            if (projectedExpense > income) {
+                insightHtml += ` <span style="color:#ef4444; font-weight:700;">(수입 초과 경보!)</span>`;
+            }
+
+            // B. 전월 대비 비교 (MoM)
+            const prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            // MM 형식 맞추기 (예: 2 -> 02)
+            const pm = (prevMonthDate.getMonth() + 1).toString().padStart(2, '0');
+            const prevMonthStr = `${prevMonthDate.getFullYear()}.${pm}`;
+            const currentMonthStr = `${today.getFullYear()}.${(today.getMonth() + 1).toString().padStart(2, '0')}`;
+
+            // 선택된 월이 현재 월이거나 '전체'일 때만 전월 대비 분석 수행
+            if (selectedMonthStr === 'all' || selectedMonthStr.replace('-', '.') === currentMonthStr) {
+                const combinedAll = [...fullData.variable_transactions, ...manualData];
+                const prevMonthTx = combinedAll.filter(t => {
+                    const tMonth = t.yearMonth || (t.date.split('.')[0].padStart(2, '0'));
+                    const tDay = parseInt(t.date.split('.')[1]);
+                    return (t.date.startsWith(pm + '.') || t.yearMonth === prevMonthStr) && tDay <= currentDay;
+                });
+
+                const prevFixedTotal = userSettings.fixedExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+                const prevVariableTotal = prevMonthTx.filter(t => t.category !== '수입').reduce((acc, curr) => acc + curr.amount, 0);
+                const prevTotalSamePeriod = prevFixedTotal + prevVariableTotal;
+
+                const diff = expense - prevTotalSamePeriod;
+                const diffPct = prevTotalSamePeriod > 0 ? (diff / prevTotalSamePeriod * 100) : 0;
+
+                insightHtml += `<br>📊 <b>전월 동기간 대비:</b> 지난달 같은 날짜(${currentDay}일)까지보다 `;
+                if (diff > 0) {
+                    insightHtml += `<span style="color:#ef4444; font-weight:700;">${formatNum(diff)} (${diffPct.toFixed(1)}%) 더 많이</span> 쓰고 있습니다. 지출 관리가 필요해 보여요!`;
+                } else if (diff < 0) {
+                    insightHtml += `<span style="color:#22c55e; font-weight:700;">${formatNum(Math.abs(diff))} (${Math.abs(diffPct).toFixed(1)}%) 더 적게</span> 쓰고 있습니다. 아주 잘하고 계시네요!`;
+                } else {
+                    insightHtml += `정확히 동일한 금액을 쓰고 있습니다.`;
+                }
+            }
+
+            const insightBox = document.getElementById('smart-insight');
+            insightBox.style.display = 'block';
+            insightBox.innerHTML = insightHtml;
+
+            // 2. 예산 진행률 바
+            const bList = document.getElementById('budget-progress-list');
+            bList.innerHTML = '';
+
+            const spendingByCat = {};
+            txList.forEach(t => {
+                if (t.category === '수입') return;
+                const key = t.category.replace('/', '_');
+                spendingByCat[key] = (spendingByCat[key] || 0) + t.amount;
+            });
+
+            Object.keys(userSettings.budgets).forEach(cat => {
+                const spent = spendingByCat[cat] || 0;
+                const budget = userSettings.budgets[cat];
+                const pct = Math.min(100, (spent / budget) * 100);
+                const color = pct > 90 ? '#ef4444' : (pct > 70 ? '#f59e0b' : '#38bdf8');
+
+                const div = document.createElement('div');
+                div.style.marginBottom = '1.2rem';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+                        <span>${cat.replace('_', '/')}</span>
+                        <span>${formatNum(spent)} / ${formatNum(budget)} (${Math.floor(pct)}%)</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width:${pct}%; background:${color};"></div>
+                    </div>
+                `;
+                bList.appendChild(div);
+            });
+        }
+
+        function renderCalendar(month, txList) {
+            const calendarBody = document.getElementById('calendar-body');
+            calendarBody.innerHTML = '';
+
+            // 헤더 추가
+            const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+            weekDays.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-header';
+                header.innerText = day;
+                calendarBody.appendChild(header);
+            });
+
+            // 연도 및 월 설정 (기본 2026년으로 가정)
+            const year = 2026;
+            const targetMonth = month === 'all' ? 3 : parseInt(month); // 전체보기일 경우 3월 기본
+            const firstDay = new Date(year, targetMonth - 1, 1).getDay();
+            const daysInMonth = new Date(year, targetMonth, 0).getDate();
+
+            // 이전 달 빈 칸
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'calendar-day other-month';
+                calendarBody.appendChild(empty);
+            }
+
+            // 날짜별 데이터 그룹화
+            const dayMap = {};
+            txList.forEach(tr => {
+                const parts = tr.date.split('.');
+                const m = parseInt(parts[0]);
+                const d = parseInt(parts[1]);
+
+                if (m === targetMonth) {
+                    if (!dayMap[d]) dayMap[d] = { in: 0, out: 0, items: [] };
+                    if (tr.category === '수입') {
+                        dayMap[d].in += tr.amount;
+                    } else {
+                        dayMap[d].out += tr.amount;
+                    }
+                    dayMap[d].items.push(tr);
+                }
+            });
+
+            // 날짜 생성
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayNode = document.createElement('div');
+                dayNode.className = 'calendar-day';
+                dayNode.onclick = () => showDayDetails(d, dayMap[d]);
+
+                const info = dayMap[d] || { in: 0, out: 0 };
+
+                dayNode.innerHTML = `
+                    <div class="day-number">${d}</div>
+                    <div class="day-info">
+                        ${info.in > 0 ? `<div class="amount-in">+${info.in.toLocaleString()}</div>` : ''}
+                        ${info.out > 0 ? `<div class="amount-out">-${info.out.toLocaleString()}</div>` : ''}
+                    </div>
+                `;
+                calendarBody.appendChild(dayNode);
+            }
+        }
+
+        function showDayDetails(day, info) {
+            const detailContainer = document.getElementById('selected-day-info');
+            if (!info || info.items.length === 0) {
+                detailContainer.innerHTML = `<h3 style="margin-bottom:1rem;">${day}일 상세 내역</h3><p style="color:var(--text-secondary)">내역이 없습니다.</p>`;
+                return;
+            }
+
+            let html = `<h3 style="margin-bottom:1rem;">${day}일 상세 내역</h3>`;
+            html += `<table><thead><tr><th>가맹점</th><th>금액</th><th>카테고리</th></tr></thead><tbody>`;
+            info.items.forEach(item => {
+                const safeCat = item.category.replace(/\//g, '_');
+                html += `<tr>
+                    <td>${item.merchant}</td>
+                    <td style="font-weight:600;">${formatNum(item.amount)}</td>
+                    <td><span class="category-tag cat-${safeCat}">${item.category}</span></td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            detailContainer.innerHTML = html;
+        }
+
+        function renderTables(txList) {
+            const topTable = document.getElementById('top-expenses').querySelector('tbody');
+            const allTable = document.getElementById('all-expenses').querySelector('tbody');
+            topTable.innerHTML = '';
+            allTable.innerHTML = '';
+
+            const sortedTx = [...txList].sort((a, b) => b.amount - a.amount);
+
+            sortedTx.forEach((tr, idx) => {
+                const safeCat = tr.category.replace(/\//g, '_');
+                const rowHTML = `
+                    <td>${tr.date}</td>
+                    <td>${tr.merchant}</td>
+                    <td style="font-weight:600;">${formatNum(tr.amount)}</td>
+                    <td><span class="category-tag cat-${safeCat}">${tr.category}</span></td>
+                `;
+
+                if (idx < 5) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = rowHTML;
+                    topTable.appendChild(row);
+                }
+
+                const rowAll = document.createElement('tr');
+                rowAll.innerHTML = rowHTML;
+                allTable.appendChild(rowAll);
+            });
+
+            // 상세 페이지 필터용 카테고리 셀렉트 업데이트
+            const catSet = new Set(txList.map(t => t.category));
+            const filterSelect = document.getElementById('filter-cat');
+            filterSelect.innerHTML = '<option value="all">모든 카테고리</option>';
+            catSet.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.innerText = c;
+                filterSelect.appendChild(opt);
+            });
+        }
+
+        function initTrendChart() {
+            const monthlyData = { '12월': 0, '1월': 0, '2월': 0, '3월': 0 };
+            const combinedTx = [...fullData.variable_transactions, ...manualData];
+
+            combinedTx.forEach(tr => {
+                if (tr.category === '수입') return;
+                const m = tr.date.split('.')[0];
+                if (m === '12') monthlyData['12월'] += tr.amount;
+                if (m === '01') monthlyData['1월'] += tr.amount;
+                if (m === '02') monthlyData['2월'] += tr.amount;
+                if (m === '03') monthlyData['3월'] += tr.amount;
+            });
+
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: Object.keys(monthlyData),
+                    datasets: [{
+                        label: '변동 지출액',
+                        data: Object.values(monthlyData),
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        x: { ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        function filterTable() {
+            const search = document.getElementById('search-tx').value.toLowerCase();
+            const cat = document.getElementById('filter-cat').value;
+            const rows = document.getElementById('all-expenses').querySelector('tbody').rows;
+
+            for (let row of rows) {
+                const merchant = row.cells[1].innerText.toLowerCase();
+                const category = row.cells[3].innerText;
+                const matchesSearch = merchant.includes(search);
+                const matchesCat = (cat === 'all' || category === cat);
+                row.style.display = (matchesSearch && matchesCat) ? "" : "none";
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

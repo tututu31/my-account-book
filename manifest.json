@@ -1,0 +1,15 @@
+{
+    "name": "프리미엄 가계부",
+    "short_name": "가계부",
+    "start_url": "dashboard.html",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#38bdf8",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/2652/2652218.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
