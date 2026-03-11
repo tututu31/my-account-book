@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>프리미엄 가계부 v4.7</title>
+    <title>프리미엄 가계부 v5.0</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#38bdf8">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -943,8 +943,14 @@
                     <select id="map-merchant" class="form-control"></select>
                 </div>
                 <div class="form-group">
-                    <label>💰 금액 열</label>
+                    <label>📤 출금(지출) 열</label>
                     <select id="map-amount" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>📥 입금(수입) 열</label>
+                    <select id="map-income" class="form-control">
+                        <option value="-1">없음</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>🏷️ 카테고리(선택)</label>
@@ -1451,10 +1457,14 @@
             let html = `<h3 style="margin-bottom:1rem;">${day}일 상세 내역</h3>`;
             html += `<table><thead><tr><th>가맹점</th><th>금액</th><th>카테고리</th></tr></thead><tbody>`;
             info.items.forEach(item => {
+                const isIncome = item.type === 'income' || item.category === '수입';
                 const safeCat = item.category.replace(/\//g, '_');
+                const amtColor = isIncome ? 'var(--success)' : 'white';
+                const prefix = isIncome ? '[입금] ' : '';
+
                 html += `<tr>
-                    <td>${item.merchant}</td>
-                    <td style="font-weight:600;">${formatNum(item.amount)}</td>
+                    <td>${prefix}${item.merchant}</td>
+                    <td style="font-weight:600; color:${amtColor};">${formatNum(item.amount)}</td>
                     <td><span class="category-tag cat-${safeCat}">${item.category}</span></td>
                 </tr>`;
             });
@@ -1471,11 +1481,15 @@
             const sortedTx = [...txList].sort((a, b) => b.amount - a.amount);
 
             sortedTx.forEach((tr, idx) => {
+                const isIncome = tr.type === 'income' || tr.category === '수입';
                 const safeCat = tr.category.replace(/\//g, '_');
+                const amtColor = isIncome ? 'var(--success)' : 'white';
+                const prefix = isIncome ? '<b>[입금]</b> ' : '';
+
                 const rowHTML = `
                     <td>${tr.date}</td>
-                    <td>${tr.merchant}</td>
-                    <td style="font-weight:600;">${formatNum(tr.amount)}</td>
+                    <td>${prefix}${tr.merchant}</td>
+                    <td style="font-weight:600; color:${amtColor};">${formatNum(tr.amount)}</td>
                     <td><span class="category-tag cat-${safeCat}">${tr.category}</span></td>
                 `;
 
@@ -1578,7 +1592,7 @@
             globalFilename = filename;
             const modal = document.getElementById('excel-mapping-modal');
             const table = document.getElementById('excel-preview-table');
-            const selects = ['map-date', 'map-merchant', 'map-amount', 'map-category'];
+            const selects = ['map-date', 'map-merchant', 'map-amount', 'map-income', 'map-category'];
 
             // 미리보기 테이블 채우기 (최대 6줄)
             let tableHtml = '<thead><tr><th>Col #</th>';
@@ -1598,7 +1612,13 @@
             selects.forEach(id => {
                 const sel = document.getElementById(id);
                 const prevVal = sel.value;
-                sel.innerHTML = id === 'map-category' ? '<option value="-1">직접 지정 안 함</option>' : '';
+                if (id === 'map-category') {
+                    sel.innerHTML = '<option value="-1">직접 지정 안 함</option>';
+                } else if (id === 'map-income') {
+                    sel.innerHTML = '<option value="-1">입금 열 없음</option>';
+                } else {
+                    sel.innerHTML = '';
+                }
                 for (let i = 0; i < maxCols; i++) {
                     const option = document.createElement('option');
                     option.value = i;
@@ -1619,6 +1639,7 @@
                 date: parseInt(document.getElementById('map-date').value),
                 merchant: parseInt(document.getElementById('map-merchant').value),
                 amount: parseInt(document.getElementById('map-amount').value),
+                income: parseInt(document.getElementById('map-income').value),
                 category: parseInt(document.getElementById('map-category').value)
             };
 
@@ -1637,7 +1658,7 @@
             }
 
             let headerIdx = -1;
-            let colIndices = { date: -1, merchant: -1, amount: -1, category: -1 };
+            let colIndices = { date: -1, merchant: -1, amount: -1, income: -1, category: -1 };
 
             if (manualColIndices) {
                 headerIdx = startFrom - 1;
@@ -1645,16 +1666,17 @@
             } else {
                 // 자동 헤더 감지 로직
                 const colMaps = {
-                    date: ['거래일시', '거래일', '일자', 'Date', '날짜', '작성일', '일시', '승인일자', '사용일자', '이용일자', '결제일', '이용일'],
+                    date: ['거래일시', '거래일', '일자', 'Date', '날짜', '작성일', '일시', '승인일자', '사용일자', '이용일자', '결제일', '이용일', '거래일자'],
                     merchant: ['가맹점명', '거래처', '내역', '적요', 'Merchant', '가맹점', '사용처', '항목', '내용', '가맹점명/찾으신분', '거래대상', '이용처', '이용내역', '사용내역'],
-                    amount: ['거래금액', '지출', '금액', 'Amount', '출금금액', '합계', '결제금액', '사용금액', '승인금액', '이용금액', '결제일합계'],
+                    amount: ['거래금액', '지출', '금액', 'Amount', '출금금액', '합계', '결제금액', '사용금액', '승인금액', '이용금액', '결제일합계', '출금(원)', '출금'],
+                    income: ['입금액', '입금', '수입', 'Income', '입금금액', '맡기신분', '입금(원)'],
                     category: ['분류', '유형', 'Category', '카테고리', '구분', '업종']
                 };
 
                 for (let i = 0; i < Math.min(allRows.length, 20); i++) {
                     const row = allRows[i];
                     if (!Array.isArray(row)) continue;
-                    let tempIndices = { date: -1, merchant: -1, amount: -1, category: -1 };
+                    let tempIndices = { date: -1, merchant: -1, amount: -1, income: -1, category: -1 };
                     row.forEach((cell, idx) => {
                         if (!cell) return;
                         const cellStr = cell.toString().replace(/\s/g, '').toLowerCase();
@@ -1664,7 +1686,7 @@
                             }
                         });
                     });
-                    if (tempIndices.date !== -1 && tempIndices.amount !== -1) {
+                    if (tempIndices.date !== -1 && (tempIndices.amount !== -1 || tempIndices.income !== -1)) {
                         headerIdx = i;
                         colIndices = tempIndices;
                         break;
@@ -1678,9 +1700,10 @@
             }
 
             const cleanAmount = (val) => {
-                if (typeof val === 'number') return val;
+                if (typeof val === 'number') return Math.abs(val);
                 if (!val) return 0;
-                return parseInt(val.toString().replace(/[^0-9-]/g, '')) || 0;
+                const cleaned = parseInt(val.toString().replace(/[^0-9-]/g, ''));
+                return isNaN(cleaned) ? 0 : Math.abs(cleaned);
             };
 
             const normalizeDate = (val) => {
@@ -1690,24 +1713,46 @@
                     return `${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')}`;
                 }
                 const str = val.toString().trim();
-                const dateParts = str.match(/(\d{1,2})[.\-/](\d{1,2})/);
-                if (dateParts) return `${dateParts[1].padStart(2, '0')}.${dateParts[2].padStart(2, '0')}`;
+                // 1. YYYY.MM.DD 또는 YY.MM.DD 패턴 (MM.DD 추출)
+                const longDate = str.match(/(\d{2,4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
+                if (longDate) return `${longDate[2].padStart(2, '0')}.${longDate[3].padStart(2, '0')}`;
+
+                // 2. MM.DD 패턴
+                const shortDate = str.match(/(\d{1,2})[.\-/](\d{1,2})/);
+                if (shortDate) return `${shortDate[1].padStart(2, '0')}.${shortDate[2].padStart(2, '0')}`;
+
                 return str;
             };
 
             const dataRows = allRows.slice(headerIdx + 1);
             const newTransactions = dataRows.map(row => {
-                const amount = cleanAmount(row[colIndices.amount]);
-                if (isNaN(amount) || amount <= 0) return null;
+                let amount = 0;
+                let type = 'expense';
+                let category = '기타';
+
+                const outAmt = colIndices.amount !== -1 ? cleanAmount(row[colIndices.amount]) : 0;
+                const inAmt = colIndices.income !== -1 ? cleanAmount(row[colIndices.income]) : 0;
+
+                if (inAmt > 0) {
+                    amount = inAmt;
+                    type = 'income';
+                    category = '수입';
+                } else if (outAmt > 0) {
+                    amount = outAmt;
+                    type = 'expense';
+                    category = (colIndices.category !== -1 && row[colIndices.category]) ? row[colIndices.category] : '기타';
+                } else {
+                    return null;
+                }
 
                 return {
                     id: Date.now() + Math.random(),
                     date: normalizeDate(row[colIndices.date]),
                     merchant: row[colIndices.merchant] || '알 수 없음',
                     amount: amount,
-                    category: (colIndices.category !== -1 && row[colIndices.category]) ? row[colIndices.category] : '기타',
+                    category: category,
                     source: filename,
-                    type: 'expense'
+                    type: type
                 };
             }).filter(tr => tr !== null);
 
@@ -1719,7 +1764,8 @@
             fullData.variable_transactions = [...newTransactions, ...fullData.variable_transactions];
             saveToLocal();
             init();
-            alert(`${newTransactions.length}건 성공적으로 업로드!`);
+            const sampleDate = newTransactions[0].date;
+            alert(`${newTransactions.length}건 성공적으로 업로드!\n(인식된 첫 데이터 날짜: ${sampleDate}, 현재 필터와 일치하는지 확인해주세요.)`);
         }
 
         async function handleOCRUpload(event) {
@@ -1819,13 +1865,13 @@
 
         function saveToLocal() {
             localStorage.setItem('finance_data_v4', JSON.stringify(fullData));
-            localStorage.setItem('manual_records_v4', JSON.stringify(manualData));
+            localStorage.setItem('manualFinances', JSON.stringify(manualData));
         }
 
         function resetToInitial() {
             if (confirm('모든 데이터를 초기화하고 기본 상태로 되돌리시겠습니까?')) {
                 localStorage.removeItem('finance_data_v4');
-                localStorage.removeItem('manual_records_v4');
+                localStorage.removeItem('manualFinances');
                 location.reload();
             }
         }
