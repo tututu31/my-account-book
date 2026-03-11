@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/tesseract.js@v4.0.1/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet">
@@ -1470,16 +1470,31 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // 로딩 표시 (간이)
+            // 로딩 표시
             const btn = event.target.previousElementSibling;
             const originalText = btn.innerText;
-            btn.innerText = '⌛ 분석 중...';
+            btn.innerText = '⌛ 준비 중...';
             btn.disabled = true;
 
+            let worker = null;
             try {
-                const { data: { text } } = await Tesseract.recognize(file, 'kor+eng', {
-                    logger: m => console.log(m)
+                // Tesseract 워커 상세 설정 (더 안정적인 방식)
+                worker = await Tesseract.createWorker({
+                    logger: m => {
+                        console.log(m);
+                        if (m.status === 'recognizing') {
+                            btn.innerText = `⌛ 분석 중 (${Math.round(m.progress * 100)}%)`;
+                        } else if (m.status === 'loading tesseract core') {
+                            btn.innerText = '⌛ 코어 로딩 중...';
+                        }
+                    },
+                    errorHandler: err => console.error("Worker Error:", err)
                 });
+
+                await worker.loadLanguage('kor+eng');
+                await worker.initialize('kor+eng');
+
+                const { data: { text } } = await worker.recognize(file);
 
                 console.log("OCR 추출 텍스트:", text);
                 const parsedData = parseReceiptText(text);
@@ -1488,13 +1503,14 @@
                     fillManualEntryForm(parsedData);
                     alert('영수증 분석 완료! 수동 입력 탭에서 내용을 확인하고 저장해주세요.');
                 } else {
-                    alert('금액을 인식하지 못했습니다. 수동으로 입력해주세요.');
+                    alert('금액을 인식하지 못했습니다. 사진을 더 밝고 선명하게 찍어보시거나, 직접 입력해주세요.');
                     openTab(null, 'manual');
                 }
             } catch (error) {
-                console.error("OCR 에러:", error);
-                alert('이미지 분석 중 오류가 발생했습니다.');
+                console.error("OCR 상세 에러:", error);
+                alert(`이미지 분석 중 오류가 발생했습니다.\n가능한 원인: 인터넷 연결 불안정 또는 브라우저 호환성\n상세: ${error.message || 'Unknown Error'}`);
             } finally {
+                if (worker) await worker.terminate();
                 btn.innerText = originalText;
                 btn.disabled = false;
                 event.target.value = ''; // 초기화
