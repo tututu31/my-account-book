@@ -1,14 +1,12 @@
-// Service Worker for PWA (Minimal Offline Support)
-const CACHE_NAME = 'finance-pwa-v1';
+// Service Worker for PWA (Improved Cache Management)
+const CACHE_NAME = 'finance-pwa-v2';
 const ASSETS = [
     './index.html',
-    './manifest.json',
-    'https://cdn.jsdelivr.net/npm/chart.js',
-    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap'
+    './manifest.json'
 ];
 
 self.addEventListener('install', (e) => {
+    self.skipWaiting(); // 즉시 활성화
     e.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             return cache.addAll(ASSETS);
@@ -16,7 +14,29 @@ self.addEventListener('install', (e) => {
     );
 });
 
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.map((key) => {
+                    if (key !== CACHE_NAME) {
+                        return caches.delete(key);
+                    }
+                })
+            );
+        })
+    );
+});
+
 self.addEventListener('fetch', (e) => {
+    // index.html은 항상 최신 버전을 시도 (Network First)
+    if (e.request.url.includes('index.html')) {
+        e.respondWith(
+            fetch(e.request).catch(() => caches.match(e.request))
+        );
+        return;
+    }
+
     e.respondWith(
         caches.match(e.request).then((res) => {
             return res || fetch(e.request);
