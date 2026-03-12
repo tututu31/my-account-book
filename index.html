@@ -1682,13 +1682,13 @@
             const combinedTx = [...fullData.variable_transactions, ...manualData];
             const filteredTx = selectedMonth === 'all'
                 ? combinedTx
-                : combinedTx.filter(tr => tr.date.startsWith(selectedMonth));
+                : combinedTx.filter(tr => tr.date && String(tr.date).startsWith(selectedMonth));
 
             // 수입/지출 합계 계산
             const manualIncomes = manualData.filter(m => m.type === 'income');
             const filteredManualIncomes = selectedMonth === 'all'
                 ? manualIncomes
-                : manualIncomes.filter(m => m.date.startsWith(selectedMonth));
+                : manualIncomes.filter(m => m.date && String(m.date).startsWith(selectedMonth));
 
             let monthTotalIncome = currentIncome;
             if (selectedMonth !== 'all') {
