@@ -1,5 +1,6 @@
-const CACHE_NAME = 'finance-app-v5';
+const CACHE_NAME = 'finance-app-v7';
 const urlsToCache = [
+  './',
   './index.html',
   './manifest.json',
   'https://cdn.jsdelivr.net/npm/chart.js',
@@ -7,6 +8,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // 즉시 활성화
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -16,14 +18,18 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // index.html은 항상 네트워크 우선 (업데이트 감지를 위해)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
+        return response || fetch(event.request);
       })
   );
 });

@@ -1,0 +1,6 @@
+LedgerBot.MainActivity, LedgerBot;crc649216dd702e564ebf.MainActivity
+LedgerBot.MainActivity;crc649216dd702e564ebf.MainActivity
+ledgerbot.MainActivity;crc649216dd702e564ebf.MainActivity
+LedgerBot.MyNotificationListener, LedgerBot;crc649216dd702e564ebf.MyNotificationListener
+LedgerBot.MyNotificationListener;crc649216dd702e564ebf.MyNotificationListener
+ledgerbot.MyNotificationListener;crc649216dd702e564ebf.MyNotificationListener

@@ -1,0 +1,10 @@
+<api type="debug" assembly-name="LedgerBot" mvid="e4f37220ac7141c39e73799c0e2cde21">
+  <java-to-managed>
+    <entry java-name="crc649216dd702e564ebf/MainActivity" managed-name="LedgerBot.MainActivity, LedgerBot" managed-type-token-id="33554434" />
+    <entry java-name="crc649216dd702e564ebf/MyNotificationListener" managed-name="LedgerBot.MyNotificationListener, LedgerBot" managed-type-token-id="33554435" />
+  </java-to-managed>
+  <managed-to-java>
+    <entry java-name="crc649216dd702e564ebf/MainActivity" managed-name="LedgerBot.MainActivity, LedgerBot" managed-type-token-id="33554434" />
+    <entry java-name="crc649216dd702e564ebf/MyNotificationListener" managed-name="LedgerBot.MyNotificationListener, LedgerBot" managed-type-token-id="33554435" />
+  </managed-to-java>
+</api>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    이 코드는 도구를 사용하여 생성되었습니다.
+    이 코드는 C:\Users\PC\Desktop\ks\LedgerBot\LedgerBot\AndroidManifest.xml에서 생성되었습니다.
+    파일 내용을 변경하면 잘못된 동작이 발생할 수 있으며,
+    콘텐츠를 다시 생성하면 변경 내용이 손실됩니다.
+    -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" package="com.companyname.LedgerBot" android:versionName="1.0">
+  <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="36" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+  <application android:allowBackup="true" android:icon="@mipmap/appicon" android:label="@string/app_name" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true" android:name="android.app.Application" android:debuggable="true" android:extractNativeLibs="true">
+    <activity android:label="@string/app_name" android:name="crc649216dd702e564ebf.MainActivity" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <service android:exported="true" android:label="가계부 알림봇" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" android:name="crc649216dd702e564ebf.MyNotificationListener">
+      <intent-filter>
+        <action android:name="android.service.notification.NotificationListenerService" />
+      </intent-filter>
+    </service>
+    <provider android:name="mono.MonoRuntimeProvider" android:exported="false" android:initOrder="1999999999" android:authorities="com.companyname.LedgerBot.mono.MonoRuntimeProvider.__mono_init__" />
+  </application>
+</manifest>
