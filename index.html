@@ -1118,6 +1118,23 @@
         }
 
         let categoryChart, trendChart;
+        
+        // [로딩 제어 함수 추가]
+        function showLoading(msg) {
+            const overlay = document.getElementById('loading-overlay');
+            const text = document.getElementById('loading-text');
+            if (overlay && text) {
+                text.innerText = msg || '처리 중...';
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
 
 
         function openTab(evt, tabName) {
@@ -1225,19 +1242,22 @@
         }
 
         async function pushSettingsToSheet() {
-            if (!GAS_URL) return alert('먼저 구글 시트 URL을 등록하고 저장해주세요.');
+            if (!GAS_WEB_APP_URL) {
+                alert('❌ 구글 시트 URL이 설정되지 않았습니다.\n[⚙️ 설정] -> [구글 시트 연동]에 URL을 입력하고 [저장]을 먼저 해주세요.');
+                return;
+            }
             
-            showLoading('설정 내보내는 중...');
+            showLoading('📤 설정을 시트로 내보내는 중...');
             try {
                 const settingsToSync = {
                     geminiApiKey: GEMINI_API_KEY,
                     aiModels: userSettings.aiModels,
-                    categories: userSettings.categories,
+                    customCategories: userSettings.customCategories,
                     budgets: userSettings.budgets,
-                    fixedExpenses: fullData.fixed_expenses
+                    fixedExpenses: userSettings.fixedExpenses // userSettings에 있는 고정비 사용
                 };
 
-                const response = await fetch(GAS_URL, {
+                const response = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     cache: 'no-cache',
@@ -1245,28 +1265,32 @@
                     body: JSON.stringify({ action: 'save_settings', settings: settingsToSync })
                 });
                 
-                alert('✨ 설정이 구글 시트에 안전하게 저장되었습니다!\n이제 다른 기기(모바일 등)에서 [설정 가져오기]를 눌러주세요.');
+                // no-cors 모드에서는 응답 내용을 읽을 수 없으므로 성공했다고 가정하고 안내
+                alert('✨ [내보내기 완료]\n\n설정이 구글 시트의 [Settings] 탭에 안전하게 저장되었습니다.\n이제 모바일 기기에서 [📥 시트에서 내 설정 가져오기]를 눌러주세요.');
             } catch (error) {
                 console.error("Push Settings Error:", error);
-                alert(`설정 내보내기 중 오류가 발생했습니다.\n상세: ${error.message}`);
+                alert(`❌ 설정 내보내기 실패\n\n원인: ${error.message}\nURL이나 네트워크 연결을 확인해주세요.`);
             } finally {
                 hideLoading();
             }
         }
 
         async function pullSettingsFromSheet() {
-            if (!GAS_URL) return alert('먼저 구글 시트 URL을 등록하고 저장해주세요.');
+            if (!GAS_WEB_APP_URL) {
+                alert('❌ 구글 시트 URL이 설정되지 않았습니다.\n먼저 연동 URL을 입력하고 저장해주세요.');
+                return;
+            }
             
-            if (!confirm('시트에 저장된 설정으로 현재 설정을 덮어씌울까요?\n(API 키, 모델 리스트, 카테고리, 예산 등이 변경됩니다.)')) return;
+            if (!confirm('📡 시트의 설정 데이터로 현재 기기의 설정을 덮어씌울까요?\n(API 키, 모델 리스트, 카테고리, 예산 등이 동기화됩니다.)')) return;
 
-            showLoading('설정 가져오는 중...');
+            showLoading('📥 설정을 가져오는 중...');
             try {
-                const response = await fetch(`${GAS_URL}?action=settings`);
-                if (!response.ok) throw new Error('서버 응답 오류');
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=settings`);
+                if (!response.ok) throw new Error(`서버 응답 오류 (Status: ${response.status})`);
                 
                 const remoteSettings = await response.json();
                 if (!remoteSettings || Object.keys(remoteSettings).length === 0) {
-                    alert('시트에 저장된 설정 데이터가 없습니다.');
+                    alert('⚠️ 시트에 저장된 설정 데이터가 없습니다.\n먼저 PC에서 [내보내기]를 진행해 주세요.');
                     return;
                 }
 
@@ -1276,17 +1300,18 @@
                     localStorage.setItem('geminiApiKey', GEMINI_API_KEY);
                 }
                 if (remoteSettings.aiModels) userSettings.aiModels = remoteSettings.aiModels;
-                if (remoteSettings.categories) userSettings.categories = remoteSettings.categories;
+                if (remoteSettings.customCategories) userSettings.customCategories = remoteSettings.customCategories;
                 if (remoteSettings.budgets) userSettings.budgets = remoteSettings.budgets;
-                if (remoteSettings.fixedExpenses) fullData.fixed_expenses = remoteSettings.fixedExpenses;
+                if (remoteSettings.fixedExpenses) userSettings.fixedExpenses = remoteSettings.fixedExpenses;
 
-                saveSettings();
-                init(); // UI 대규모 갱신
-                alert('✨ 모든 설정이 시트로부터 동기화되었습니다!');
-                window.location.reload(); // 확실한 반영을 위해 리로드 추천
+                // localStorage 저장
+                localStorage.setItem('userSettings_v4', JSON.stringify(userSettings));
+                
+                alert('✨ [가져오기 성공]\n\n모든 설정이 동기화되었습니다! 화면을 새로고침하여 적용합니다.');
+                window.location.reload(); 
             } catch (error) {
                 console.error("Pull Settings Error:", error);
-                alert(`설정 가져오기 중 오류가 발생했습니다.\n상세: ${error.message}`);
+                alert(`❌ 설정 가져오기 실패\n\n원인: ${error.message}\n구글 시트 URL이 정확한지 확인해 주세요.`);
             } finally {
                 hideLoading();
             }
@@ -2616,10 +2641,9 @@ ${smsText}
                 return;
             }
 
-            const loadingOverlay = document.getElementById('loading-overlay');
             try {
                 if(!silent) {
-                    loadingOverlay.style.display = 'flex';
+                    showLoading('구글 시트 동기화 중...');
                     // 버튼 클릭 반응이 없는지 확인하기 위한 즉각적인 피드백
                     console.log("Starting sync with:", GAS_WEB_APP_URL);
                 }
@@ -2706,7 +2730,8 @@ ${smsText}
                     saveToLocal();
                     updateByMonth();
                     initTrendChart();
-                    if (document.getElementById('manual-entry').classList.contains('active')) {
+                    const manualTab = document.getElementById('manual');
+                    if (manualTab && manualTab.classList.contains('active')) {
                         renderManualList();
                     }
                     if(!silent) alert('동기화 완료! ' + data.length + '개의 내역을 구글 시트에서 가져왔습니다.');
@@ -2724,7 +2749,7 @@ ${smsText}
                     alert(userMsg);
                 }
             } finally {
-                loadingOverlay.style.display = 'none';
+                hideLoading();
             }
         }
 
