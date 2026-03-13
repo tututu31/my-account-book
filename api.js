@@ -254,6 +254,11 @@ async function fetchDataFromSheet(silent = false) {
                 if (typeof renderManualList === 'function') renderManualList();
             }
             if(!silent) showToast(`🔄 동기화 완료! (${data.length}건)`, 'success');
+            
+            // Check for pending MacroDroid automation entries
+            setTimeout(() => {
+                if (typeof checkAutomationPending === 'function') checkAutomationPending();
+            }, 1000);
         }
     } catch (err) {
         console.error("Fetch DB error:", err);

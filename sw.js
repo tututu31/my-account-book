@@ -1,12 +1,12 @@
-const CACHE_NAME = 'ledgerbot-v13';
+const CACHE_NAME = 'ledgerbot-v14';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css?v=13',
-  './utils.js?v=13',
-  './api.js?v=13',
-  './ui.js?v=13',
-  './app.js?v=13',
+  './style.css?v=14',
+  './utils.js?v=14',
+  './api.js?v=14',
+  './ui.js?v=14',
+  './app.js?v=14',
   './manifest.json',
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
@@ -37,12 +37,10 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // API requests bypass cache
   if (event.request.url.includes('script.google.com') || event.request.url.includes('googleapis.com')) {
     return;
   }
 
-  // Stale-while-revalidate strategy for internal assets
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
       const fetchPromise = fetch(event.request).then(networkResponse => {

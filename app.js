@@ -636,28 +636,46 @@ function stopVoiceRecognition() {
     document.getElementById('recording-text').innerText = '듣고 있어요...';
 }
 
-// Clipboard Paste
-function initPasteHandler() {
-    window.addEventListener('paste', async (e) => {
-        const items = e.clipboardData.items;
-        for (let item of items) {
-            if (item.type.startsWith('image/')) {
-                const file = item.getAsFile();
-                if (confirm('📋 클립보드에 이미지가 감지되었습니다. 캡쳐본을 분석하여 등록할까요?')) {
-                    const mockEvent = { target: { files: [file], previousElementSibling: document.querySelector('[data-label="영수증/스크린샷"]') } };
-                    handleOCRUpload(mockEvent);
-                }
-            } else if (item.type === 'text/plain') {
-                const text = e.clipboardData.getData('text');
-                if ((text.includes('원') || text.includes('승인') || text.includes('입금')) && text.length < 500) {
-                    if (confirm('📋 복사한 텍스트에서 결제 내역이 감지되었습니다. 분석하여 등록할까요?')) {
-                        document.getElementById('sms-input').value = text;
-                        parseSmsInput();
+// Automation (MacroDroid) processing
+async function checkAutomationPending() {
+    const pending = manualData.filter(m => m.source === 'MacroDroid' && (m.merchant === '자동화(인식대기)' || m.amount === 0));
+    if (pending.length > 0) {
+        if (confirm(`🤖 MacroDroid로부터 ${pending.length}건의 새로운 알림 내역이 도착했습니다. AI로 분석하여 가계부에 등록할까요?`)) {
+            showLoading(`AI 분석 중... (0/${pending.length})`);
+            let count = 0;
+            for (const item of pending) {
+                try {
+                    const prompt = `가계부 자동화 입력입니다. 다음 원문에서 날짜, 가맹점, 금액, 지출/수입 여부, 카테고리를 분석해서 JSON 객체로 응답해줘. 
+                        형식: {date: "MM.DD", merchant, amount, type, category}. 원문: "${item.merchant === '자동화(인식대기)' ? item.category : item.merchant}"`;
+                    // Note: In the proposed GAS code, rawText was stored in 'category' or 'merchant' field depending on implementation.
+                    // Let's assume raw text is in merchant if it's not the label.
+                    const rawText = item.merchant === '자동화(인식대기)' ? item.category : item.merchant;
+                    const result = await callGeminiAPI(prompt);
+                    
+                    if (result && result.amount) {
+                        const today = new Date();
+                        item.date = result.date || `${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+                        item.merchant = result.merchant || '자동화 분석';
+                        item.amount = result.amount;
+                        item.category = result.category || '기타';
+                        item.type = result.type || 'expense';
+                        item.source = 'AI자동화봇';
+                        
+                        if (typeof sendToSheet === 'function') sendToSheet('update', item);
                     }
+                } catch (e) {
+                    console.error("Automation analysis failed for item:", item.id, e);
                 }
+                count++;
+                const loadingText = document.getElementById('loading-text');
+                if (loadingText) loadingText.innerText = `AI 분석 중... (${count}/${pending.length})`;
             }
+            saveToLocal();
+            refreshAll();
+            hideLoading();
+            showToast(`✅ ${pending.length}건의 내역이 자동으로 정리되었습니다.`);
         }
-    });
+    }
 }
 
 // App Start
