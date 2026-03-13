@@ -15,36 +15,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script>
-        // Force unregister ALL old service workers and clear ALL caches on start
-        async function clearEverything() {
-            if ('serviceWorker' in navigator) {
-                const regs = await navigator.serviceWorker.getRegistrations();
-                for (let reg of regs) {
-                    await reg.unregister();
-                }
-            }
-            if ('caches' in window) {
-                const keys = await caches.keys();
-                for (let key of keys) {
-                    await caches.delete(key);
-                }
-            }
-        }
-
+        // Standard Service Worker Registration
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                // If we detect the "v6" zombie, trigger nuclear cleanup
-                if (localStorage.getItem('app_version') !== 'v12') {
-                    await clearEverything();
-                    localStorage.setItem('app_version', 'v12');
-                    console.log('Nuclear Cache Clear performed.');
-                }
-
-                navigator.serviceWorker.register('sw.js?v=12')
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js?v=13')
                     .then(registration => {
-                        console.log('New Clean SW registered');
+                        console.log('Service Worker registered: v13');
                         registration.onupdatefound = () => {
-                            window.location.reload();
+                            const installingWorker = registration.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    if (confirm('최신 업데이트가 있습니다. 지금 적용하시겠습니까?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            };
                         };
                     });
             });
@@ -56,7 +41,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=13">
 </head>
 
 <body>
@@ -78,7 +63,7 @@
     </div>
 
     <!-- Version Badge for Mobile Verification -->
-    <div class="version-badge" onclick="forceSystemUpdate()">v12.0_CRITICAL_UPDATE</div>
+    <div class="version-badge" onclick="openTab(null, 'settings'); showToast('현재 최신 버전(v13.0)입니다.', 'success');">v13.0</div>
 
     <!-- Global Drop Zone -->
     <div id="drop-zone">
@@ -97,8 +82,8 @@
     <div class="container">
         <header>
             <div>
-                <h1>프리미엄 가계부 <span id="v-tag" style="font-size: 0.8rem; vertical-align: middle; background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; -webkit-text-fill-color: white;">CRITICAL v12</span></h1>
-                <p style="color: var(--text-secondary); margin-top: 0.25rem;">최후의 수단: 캐시 파괴 버전이 적용되었습니다</p>
+                <h1>프리미엄 가계부 <span id="v-tag" style="font-size: 0.8rem; vertical-align: middle; background: var(--accent-primary); color: white; padding: 2px 6px; border-radius: 4px; -webkit-text-fill-color: white;">v13</span></h1>
+                <p style="color: var(--text-secondary); margin-top: 0.25rem;">스마트한 자산 관리를 시작하세요</p>
             </div>
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <a href="https://github.com" target="_blank" class="btn-github" id="github-link">
@@ -312,8 +297,8 @@
         <!-- 탭 6: 설정 -->
         <div id="settings" class="tab-content">
             <div style="text-align: right; margin-bottom: 1rem; display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;">
-                <span style="font-size: 0.75rem; color: #ef4444; background: rgba(239,68,68,0.1); padding: 4px 10px; border-radius: 6px; font-weight: 700;">🚨 EMERGENCY v12.0</span>
-                <button onclick="forceSystemUpdate()" style="font-size: 0.7rem; background: var(--danger); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-weight: 600;">캐시 강제 파괴 버튼</button>
+                <span style="font-size: 0.75rem; color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 6px;">System Version: 2026.03.13_v13.0</span>
+                <button onclick="forceSystemUpdate()" style="font-size: 0.7rem; background: var(--danger); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; opacity: 0.6;">시스템 초기화(캐시 삭제)</button>
             </div>
             <div class="settings-grid">
                 <!-- 6-1. 예산 관리 -->
@@ -431,10 +416,10 @@
     <script id='finance-data'
         type='application/json'>{"income": 0, "fixed_expenses": [], "variable_transactions": [], "monthly_stats": {}}</script>
 
-    <script src="utils.js?v=12"></script>
-    <script src="api.js?v=12"></script>
-    <script src="ui.js?v=12"></script>
-    <script src="app.js?v=12"></script>
+    <script src="utils.js?v=13"></script>
+    <script src="api.js?v=13"></script>
+    <script src="ui.js?v=13"></script>
+    <script src="app.js?v=13"></script>
 </body>
 
 </html>
