@@ -1490,19 +1490,22 @@
             let lastError = null;
             for (const model of userSettings.aiModels) {
                 try {
-                    const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
                     const parts = [{ text: prompt }];
                     if (imageBase64) {
                         parts.push({
-                            inline_data: {
-                                mime_type: "image/jpeg",
+                            inlineData: {
+                                mimeType: "image/jpeg",
                                 data: imageBase64
                             }
                         });
                     }
                     const body = {
                         contents: [{ parts }],
-                        generationConfig: { responseMimeType: "application/json" }
+                        generationConfig: { 
+                            responseMimeType: "application/json",
+                            temperature: 0.1 // 검증 및 분석 안정성을 위해 추가
+                        }
                     };
 
                     const response = await fetch(url, {
