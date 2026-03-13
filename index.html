@@ -1099,7 +1099,7 @@
 
     <script>
         let GEMINI_API_KEY = localStorage.getItem('geminiApiKey') || '';
-        let GAS_WEB_APP_URL = localStorage.getItem('gasUrl') || '';
+        let GAS_WEB_APP_URL = localStorage.getItem('gasUrl') || 'https://script.google.com/macros/s/AKfycbxHHIBh4O00Xpxw-Hdgzp1_0ze5AGWHOvpoj_ur4scq79gPVSMyL-6F8faaIb0TXtgT/exec';
 
         let fullData = JSON.parse(document.getElementById('finance-data').textContent);
         let manualData = JSON.parse(localStorage.getItem('manualFinances') || '[]');
@@ -1220,6 +1220,9 @@
 
             renderCategories();
             renderAiModels();
+
+            const gasInput = document.getElementById('gas-url-input');
+            if (gasInput) gasInput.value = GAS_WEB_APP_URL;
         }
 
         function renderAiModels() {
