@@ -480,44 +480,56 @@ async function handleOCRUpload(event) {
 }
 
 async function parseSmsInput() {
-    const smsText = document.getElementById('sms-input').value.trim();
-    if(!smsText || !GEMINI_API_KEY) return alert('입력값 또는 API Key가 없습니다.');
+    const smsInput = document.getElementById('sms-input').value.trim();
+    if(!smsInput || !GEMINI_API_KEY) return alert('입력값 또는 API Key가 없습니다.');
 
     const btn = document.getElementById('btn-parse-sms');
     const originalText = btn.innerText;
     btn.innerText = '⌛ AI 분석 중...';
     btn.disabled = true;
 
+    const prompt = `가계부 문자 분석입니다. 다음 텍스트에서 날짜, 가맹점, 금액, 지출/수입 여부, 카테고리, 그리고 '할부 개월(installmentMonths)' 및 '할부 이율(interestRate)' 정보를 추출해서 JSON 객체로 응답해줘. 
+        규칙:
+        1. 할부 언급이 없으면 installmentMonths는 1, interestRate는 0입니다. "무이자"면 interestRate는 0입니다.
+        2. 날짜는 MM.DD 형식(예: 03.12)으로 응답해줘.
+        3. 금액은 숫자만 응답해줘.
+        형식: { date, merchant, amount, type: "income"|"expense", category, installmentMonths, interestRate }.
+        텍스트: "${smsInput}"`;
+
     try {
-        const prompt = `Analyze SMS and return JSON: {date, merchant, amount, type, category}. SMS:\n${smsText}`;
         const result = await callGeminiAPI(prompt);
-
-        if(!result.amount || !result.merchant) return alert('인식 실패');
-
-        const today = new Date();
-        const finalDateStr = result.date || `${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getDate().toString().padStart(2, '0')}`;
-        const currentYear = today.getFullYear();
-
-        const newEntry = {
-            id: Date.now() + Math.random(),
-            date: finalDateStr,
-            yearMonth: `${currentYear}.${finalDateStr.split('.')[0]}`,
-            fullDate: `${currentYear}-${finalDateStr.replace('.', '-')}`,
-            type: result.type || 'expense',
-            merchant: result.merchant,
-            amount: result.amount,
-            category: result.type === 'income' ? '수입' : (result.category || '기타'),
-            source: 'AI문자봇'
-        };
-
-        manualData.push(newEntry);
-        saveToLocal();
-        refreshAll();
-        if (typeof sendToSheet === 'function') sendToSheet('insert', newEntry);
-        document.getElementById('sms-input').value = '';
-        alert(`✨ 등록 완료!`);
+        if (result && result.amount && result.merchant) {
+            if (parseInt(result.installmentMonths) > 1) {
+                await processInstallment(result);
+                showToast('🕒 할부 내역이 생성되었습니다.');
+            } else {
+                const today = new Date();
+                const year = today.getFullYear();
+                const newEntry = {
+                    id: Date.now(),
+                    date: result.date || `${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`,
+                    yearMonth: `${year}.${result.date ? result.date.split('.')[0] : String(today.getMonth() + 1).padStart(2, '0')}`,
+                    fullDate: result.date ? `${year}.${result.date}` : `${year}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`,
+                    type: result.type || 'expense',
+                    merchant: result.merchant || 'AI 분석',
+                    amount: parseInt(result.amount) || 0,
+                    category: result.category || '기타',
+                    source: 'AI문자',
+                    imageBase64: ''
+                };
+                manualData.push(newEntry);
+                if (typeof sendToSheet === 'function') sendToSheet('insert', newEntry);
+                saveToLocal();
+                refreshAll();
+                showToast('✨ 등록 완료!');
+            }
+            document.getElementById('sms-input').value = '';
+        } else {
+            alert('인식 실패: 필수 항목(금액, 가맹점)을 찾을 수 없습니다.');
+        }
     } catch (error) {
         console.error("SMS analysis error:", error);
+        alert('분석 중 오류가 발생했습니다.');
     } finally {
         btn.innerText = originalText;
         btn.disabled = false;
@@ -662,13 +674,14 @@ async function checkAutomationPending() {
             let count = 0;
             for (const item of pending) {
                 try {
+                    const rawText = item.merchant === '자동화(인식대기)' ? item.category : item.merchant;
                     const prompt = `가계부 자동화 입력입니다. 다음 원문에서 날짜, 가맹점, 금액, 지출/수입 여부, 카테고리, 그리고 '할부 개월(installmentMonths)' 및 '할부 이율(interestRate)'을 분석해서 JSON 객체로 응답해줘. 
                         형식: {date, merchant, amount, type, category, installmentMonths, interestRate}. 원문: "${rawText}"`;
                     
                     const result = await callGeminiAPI(prompt);
                     
                     if (result && result.amount) {
-                        if (result.installmentMonths > 1) {
+                        if (parseInt(result.installmentMonths) > 1) {
                             await processInstallment(result);
                         } else {
                             const today = new Date();
