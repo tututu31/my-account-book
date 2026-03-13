@@ -14,6 +14,18 @@ let tempExcelData = null; // 엑셀 매핑용 임시 데이터
 let tempExcelFilename = "";
 let mappingPresets = JSON.parse(localStorage.getItem('mappingPresets') || '{}');
 
+const SYSTEM_PRESETS = {
+    'SYSTEM_SHINHAN_CARD': {
+        name: '신한카드 명세서 (표준)',
+        findHeader: '이용일자',
+        colDate: '0', 
+        colMerchant: '2', 
+        colAmount: '3',
+        colCategory: '',
+        colType: ''
+    }
+};
+
 const defaultSettings = {
     budgets: { "식비": 600000, "교통": 150000, "쇼핑": 200000, "생활_미용": 100000, "통신_보험_공과금": 300000, "기타": 100000 },
     fixedExpenses: [],
@@ -329,16 +341,20 @@ function showExcelMappingModal(rows, headerIndex = null) {
     const selectors = ['map-date', 'map-merchant', 'map-amount', 'map-category', 'map-type'];
     const headerInput = document.getElementById('map-header-row');
     
-    // 프리셋 드롭다운 채우기 (최초 오픈 시에만 할 수도 있지만 매번 갱신해도 무방)
+    // 프리셋 드롭다운 채우기
     const presetSelect = document.getElementById('mapping-preset-select');
     if (presetSelect) {
-        presetSelect.innerHTML = '<option value="">(새로 매핑하기)</option>';
-        Object.keys(mappingPresets).forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.text = name;
-            presetSelect.appendChild(opt);
-        });
+        // 내 프리셋 그룹만 비우고 채우기
+        const userGroup = document.getElementById('user-presets-group');
+        if (userGroup) {
+            userGroup.innerHTML = '';
+            Object.keys(mappingPresets).forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.text = name;
+                userGroup.appendChild(opt);
+            });
+        }
     }
 
     // 헤더 행 결정
@@ -447,16 +463,39 @@ function saveCurrentMappingAsPreset() {
 }
 
 function loadMappingPreset(name) {
-    if (!name || !mappingPresets[name]) return;
-    const mapping = mappingPresets[name];
+    if (!name) return;
     
-    document.getElementById('map-date').value = mapping.colDate;
-    document.getElementById('map-merchant').value = mapping.colMerchant;
-    document.getElementById('map-amount').value = mapping.colAmount;
-    document.getElementById('map-category').value = mapping.colCategory;
-    document.getElementById('map-type').value = mapping.colType;
+    let mapping = null;
+    if (name.startsWith('SYSTEM_')) {
+        mapping = SYSTEM_PRESETS[name];
+        // 시스템 프리셋은 헤더 행도 자동 탐색
+        if (mapping.findHeader && tempExcelData) {
+            for (let i = 0; i < Math.min(tempExcelData.length, 100); i++) {
+                if (tempExcelData[i] && tempExcelData[i].some(cell => String(cell).includes(mapping.findHeader))) {
+                    document.getElementById('map-header-row').value = i + 1;
+                    updateExcelHeaderRow(i + 1);
+                    break;
+                }
+            }
+        }
+    } else {
+        mapping = mappingPresets[name];
+    }
     
-    showToast(`📂 '${name}' 프리셋을 불러왔습니다.`);
+    if (!mapping) return;
+    
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    };
+    
+    setVal('map-date', mapping.colDate);
+    setVal('map-merchant', mapping.colMerchant);
+    setVal('map-amount', mapping.colAmount);
+    setVal('map-category', mapping.colCategory || '');
+    setVal('map-type', mapping.colType || '');
+    
+    showToast(`📂 '${mapping.name || name}' 설정을 적용했습니다.`);
 }
 
 function deleteMappingPreset() {
@@ -507,21 +546,45 @@ async function confirmExcelMapping() {
             
             if (!rawDate || !rawAmount || isNaN(parseFloat(rawAmount))) continue;
 
-            let dateStr = null;
+            let itemDate = { y: currentYear, m: 1, d: 1 };
+            let dateParsed = false;
+
             if (rawDate instanceof Date) {
-                dateStr = `${String(rawDate.getMonth()+1).padStart(2,'0')}.${String(rawDate.getDate()).padStart(2,'0')}`;
+                itemDate.y = rawDate.getFullYear();
+                itemDate.m = rawDate.getMonth() + 1;
+                itemDate.d = rawDate.getDate();
+                dateParsed = true;
             } else {
-                const match = String(rawDate).match(/(\d{1,2})[\.\-\/](\d{1,2})/);
-                if (match) dateStr = `${match[1].padStart(2, '0')}.${match[2].padStart(2, '0')}`;
+                const dateStrRaw = String(rawDate).trim();
+                // YYYY.MM.DD 등 긴 형식 우선
+                const longMatch = dateStrRaw.match(/(\d{4})[\.\-\/](\d{1,2})[\.\-\/](\d{1,2})/);
+                if (longMatch) {
+                    itemDate.y = parseInt(longMatch[1]);
+                    itemDate.m = parseInt(longMatch[2]);
+                    itemDate.d = parseInt(longMatch[3]);
+                    dateParsed = true;
+                } else {
+                    // MM.DD 등 짧은 형식
+                    const shortMatch = dateStrRaw.match(/(\d{1,2})[\.\-\/](\d{1,2})/);
+                    if (shortMatch) {
+                        itemDate.m = parseInt(shortMatch[1]);
+                        itemDate.d = parseInt(shortMatch[2]);
+                        dateParsed = true;
+                    }
+                }
             }
             
-            if (!dateStr) continue;
+            if (!dateParsed) continue;
+
+            const mm = String(itemDate.m).padStart(2, '0');
+            const dd = String(itemDate.d).padStart(2, '0');
+            const dateStr = `${mm}.${dd}`;
 
             const entry = {
                 id: Date.now() + Math.random(),
                 date: dateStr,
-                yearMonth: `${currentYear}.${dateStr.split('.')[0]}`,
-                fullDate: `${currentYear}.${dateStr}`,
+                yearMonth: `${itemDate.y}.${mm}`,
+                fullDate: `${itemDate.y}-${mm}-${dd}`,
                 type: (colType !== "" && row[colType]) ? (String(row[colType]).includes('수입') ? 'income' : 'expense') : 'expense',
                 merchant: row[colMerchant],
                 amount: Math.abs(parseInt(rawAmount)),
