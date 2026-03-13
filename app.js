@@ -618,6 +618,89 @@ async function confirmExcelMapping() {
     }
 }
 
+async function handleExcelAIAnalysis() {
+    if (!tempExcelData || tempExcelData.length === 0) return alert('엑셀 데이터가 없습니다.');
+    if (!GEMINI_API_KEY) return alert('API Key를 먼저 등록해주세요.');
+
+    const btn = document.getElementById('btn-excel-ai-auto');
+    const originalText = btn.innerText;
+    btn.innerText = '⌛ AI 지능형 분석 중...';
+    btn.disabled = true;
+
+    try {
+        // 데이터 요약 (상위 100행)
+        let csvContent = "";
+        const maxRows = Math.min(tempExcelData.length, 100);
+        for (let i = 0; i < maxRows; i++) {
+            const row = tempExcelData[i];
+            if (row && row.some(cell => cell !== null && cell !== '')) {
+                csvContent += row.map(v => v === null || v === undefined ? '' : String(v).replace(/,/g, '')).join(",") + "\n";
+            }
+        }
+
+        const prompt = `
+당신은 가계부 데이터 변환 전문가입니다. 제공된 카드사/은행 엑셀 데이터를 분석하여 표준 지출/수입 내역 JSON 배열을 만들어주세요.
+
+규칙:
+1. 결과는 반드시 JSON 배열 형식으로만 응답하세요.
+2. 각 객체 필드:
+   - "date": "MM.DD" (예: 12.10)
+   - "year": "YYYY" (예: 2025)
+   - "merchant": 가맹점명
+   - "amount": 숫자만 (콤마 제외)
+   - "type": "expense" 또는 "income"
+   - "category": [식비, 교통, 쇼핑, 생활/미용, 여가/여행, 통신/보험/공과금, 기타] 중 선택
+
+엑셀 데이터 (CSV 요약):
+${csvContent}
+`;
+        const result = await callGeminiAPI(prompt);
+        
+        if (result && Array.isArray(result)) {
+            let addedItems = [];
+            result.forEach(item => {
+                if (!item.amount || !item.merchant) return;
+                
+                const mm = String(item.date).split('.')[0].padStart(2, '0');
+                const dd = String(item.date).split('.')[1].padStart(2, '0');
+                const yyyy = item.year || new Date().getFullYear();
+
+                addedItems.push({
+                    id: Date.now() + Math.random(),
+                    date: `${mm}.${dd}`,
+                    yearMonth: `${yyyy}.${mm}`,
+                    fullDate: `${yyyy}-${mm}-${dd}`,
+                    type: item.type || 'expense',
+                    merchant: item.merchant,
+                    amount: parseInt(item.amount),
+                    category: item.category || '기타',
+                    source: `AI자동(${tempExcelFilename})`
+                });
+            });
+
+            if (addedItems.length > 0) {
+                manualData = [...addedItems, ...manualData];
+                saveToLocal();
+                if (typeof sendToSheet === 'function') {
+                    showToast(`🚀 ${addedItems.length}건을 구글 시트로 업로드 중...`);
+                    await sendToSheet('batch_insert', addedItems);
+                }
+                refreshAll();
+                closeModal('excel-mapping-modal');
+                alert(`✨ AI가 ${addedItems.length}건의 내역을 자동으로 찾아 업로드했습니다!`);
+            } else {
+                alert('AI가 거래 내역을 찾지 못했습니다. 수동 매핑을 시도해보세요.');
+            }
+        }
+    } catch (error) {
+        console.error("AI Analysis Error:", error);
+        alert('AI 분석 중 오류가 발생했습니다.');
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
 async function processExcelData(allRows, filename, showAlerts = true) {
     if (!allRows || allRows.length === 0) return 0;
     if (!GEMINI_API_KEY) {
