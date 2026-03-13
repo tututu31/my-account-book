@@ -1,50 +1,30 @@
-const CACHE_NAME = 'finance-app-v7';
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
-];
+/**
+ * Emergency Service Worker - Cache Clear Mode
+ * This script is designed to kill old stuck caches (like v6) and force a fresh load.
+ */
+
+const CACHE_NAME = 'ledgerbot-v12-cleanup';
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // 즉시 활성화
+  // Immediately activate the new service worker
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+    // Delete ALL existing caches to clear the "v6" mess
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(name => {
+          console.log('Force deleting cache:', name);
+          return caches.delete(name);
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', event => {
-  // index.html은 항상 네트워크 우선 (업데이트 감지를 위해)
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match('./index.html'))
-    );
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        return response || fetch(event.request);
-      })
-  );
-});
-
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+  // Network-only strategy to ensure we bypass any cache and get the latest from server
+  event.respondWith(fetch(event.request));
 });
