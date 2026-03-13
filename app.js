@@ -10,6 +10,9 @@ let fullData = JSON.parse(document.getElementById('finance-data').textContent);
 let manualData = JSON.parse(localStorage.getItem('manualFinances') || '[]');
 let userSettings = JSON.parse(localStorage.getItem('userSettings_v4') || localStorage.getItem('userSettings_v3') || localStorage.getItem('userSettings') || '{}');
 
+let tempExcelData = null; // 엑셀 매핑용 임시 데이터
+let tempExcelFilename = "";
+
 const defaultSettings = {
     budgets: { "식비": 600000, "교통": 150000, "쇼핑": 200000, "생활_미용": 100000, "통신_보험_공과금": 300000, "기타": 100000 },
     fixedExpenses: [],
@@ -296,57 +299,167 @@ async function handleExcelUpload(event) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    // 업로드 경로(버튼 클릭 vs 드래그앤드롭)에 따라 텍스트를 업데이트할 버튼 식별
-    const btn = event.target.previousElementSibling || document.querySelector('button[onclick*="import-excel"]');
-    const originalText = btn ? btn.innerText : '';
-    if (btn) btn.disabled = true;
-
-    let totalAdded = 0;
-    let successCount = 0;
-
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        btn.innerText = `⌛ AI 분석 중... (${i+1}/${files.length})`;
-        
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = async (e) => {
         try {
-            const rows = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        resolve(XLSX.utils.sheet_to_json(worksheet, { header: 1 }));
-                    } catch (error) {
-                        reject(error);
-                    }
-                };
-                reader.onerror = reject;
-                reader.readAsArrayBuffer(file);
-            });
-
-            const addedCount = await processExcelData(rows, file.name, false);
-            if (addedCount > 0) {
-                totalAdded += addedCount;
-                successCount++;
-            }
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            if (rows.length < 2) return alert('엑셀 데이터가 너무 적습니다.');
+            
+            tempExcelData = rows;
+            tempExcelFilename = file.name;
+            showExcelMappingModal(rows);
         } catch (error) {
-            console.error("Excel processing error:", file.name, error);
+            console.error("Excel Read Error:", error);
+            alert('엑셀 파일을 읽는 중 오류가 발생했습니다.');
+        }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = '';
+}
+
+function showExcelMappingModal(rows) {
+    const modal = document.getElementById('excel-mapping-modal');
+    const table = document.getElementById('excel-preview-table');
+    const selectors = ['map-date', 'map-merchant', 'map-amount', 'map-category', 'map-type'];
+    
+    // 헤더 행 찾기 (비어있지 않은 첫 행)
+    let headerRowIndex = 0;
+    for (let i = 0; i < Math.min(rows.length, 10); i++) {
+        if (rows[i] && rows[i].length > 1) {
+            headerRowIndex = i;
+            break;
         }
     }
+    const headers = rows[headerRowIndex].map((h, idx) => h || `Column ${idx + 1}`);
+    
+    // 셀렉터 채우기
+    selectors.forEach(id => {
+        const select = document.getElementById(id);
+        select.innerHTML = '';
+        
+        // 기본 옵션 (없음 등) 추가
+        if (id === 'map-category' || id === 'map-type') {
+            const opt = document.createElement('option');
+            opt.value = "";
+            opt.text = id === 'map-category' ? "(없음 - AI 자동 분류)" : "(없음 - 기본 지출)";
+            select.appendChild(opt);
+        } else {
+            const opt = document.createElement('option');
+            opt.value = "";
+            opt.text = "-- 열 선택 --";
+            select.appendChild(opt);
+        }
 
-    if (btn) {
-        btn.innerText = originalText;
-        btn.disabled = false;
+        headers.forEach((h, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.text = `${String.fromCharCode(65 + idx)}열: ${h}`;
+            select.appendChild(opt);
+        });
+    });
+
+    // 미리보기 테이블 채우기 (최대 5행)
+    let html = '<thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    for (let i = headerRowIndex + 1; i < Math.min(rows.length, headerRowIndex + 6); i++) {
+        html += '<tr>';
+        headers.forEach((_, idx) => html += `<td>${rows[i][idx] || ''}</td>`);
+        html += '</tr>';
     }
-    event.target.value = '';
+    html += '</tbody>';
+    table.innerHTML = html;
 
-    if (totalAdded > 0) {
-        saveToLocal();
-        init();
-        alert(`✨ AI 분석 완료: ${files.length}개 파일 중 ${successCount}개 파일에서 ${totalAdded}건을 성공적으로 추가했습니다!`);
-    } else {
-        alert('AI가 가계부에 반영할 유효한 거래 내역을 찾지 못했습니다.');
+    // AI 추천 매핑 (간단한 헤더 키워드 매칭)
+    headers.forEach((h, idx) => {
+        const text = String(h).toLowerCase();
+        if (text.includes('일자') || text.includes('날짜') || text.includes('date')) document.getElementById('map-date').value = idx;
+        if (text.includes('내용') || text.includes('가맹점') || text.includes('상호') || text.includes('merchant')) document.getElementById('map-merchant').value = idx;
+        if (text.includes('금액') || text.includes('승인금액') || text.includes('거래금액') || text.includes('amount')) document.getElementById('map-amount').value = idx;
+        if (text.includes('카테고리') || text.includes('분류') || text.includes('category')) document.getElementById('map-category').value = idx;
+        if (text.includes('구분') || text.includes('유형') || text.includes('type')) document.getElementById('map-type').value = idx;
+    });
+
+    modal.style.display = 'block';
+}
+
+async function confirmExcelMapping() {
+    const colDate = document.getElementById('map-date').value;
+    const colMerchant = document.getElementById('map-merchant').value;
+    const colAmount = document.getElementById('map-amount').value;
+    const colCategory = document.getElementById('map-category').value;
+    const colType = document.getElementById('map-type').value;
+
+    if (colDate === "" || colMerchant === "" || colAmount === "") {
+        return alert('날짜, 가맹점, 금액 열은 반드시 지정해야 합니다.');
+    }
+
+    const btn = document.getElementById('btn-confirm-mapping');
+    btn.innerText = '⌛ 처리 중...';
+    btn.disabled = true;
+
+    try {
+        const rows = tempExcelData;
+        const currentYear = new Date().getFullYear();
+        let addedItems = [];
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const rawDate = row[colDate];
+            const rawAmount = String(row[colAmount]).replace(/[^0-9.-]/g, '');
+            
+            if (!rawDate || !rawAmount || isNaN(parseFloat(rawAmount))) continue;
+
+            let dateStr = null;
+            if (rawDate instanceof Date) {
+                dateStr = `${String(rawDate.getMonth()+1).padStart(2,'0')}.${String(rawDate.getDate()).padStart(2,'0')}`;
+            } else {
+                const match = String(rawDate).match(/(\d{1,2})[\.\-\/](\d{1,2})/);
+                if (match) dateStr = `${match[1].padStart(2, '0')}.${match[2].padStart(2, '0')}`;
+            }
+            
+            if (!dateStr) continue;
+
+            const entry = {
+                id: Date.now() + Math.random(),
+                date: dateStr,
+                yearMonth: `${currentYear}.${dateStr.split('.')[0]}`,
+                fullDate: `${currentYear}.${dateStr}`,
+                type: (colType !== "" && row[colType]) ? (String(row[colType]).includes('수입') ? 'income' : 'expense') : 'expense',
+                merchant: row[colMerchant],
+                amount: Math.abs(parseInt(rawAmount)),
+                category: (colCategory !== "" && row[colCategory]) ? row[colCategory] : '기타',
+                source: `엑셀(${tempExcelFilename})`
+            };
+            addedItems.push(entry);
+        }
+
+        if (addedItems.length > 0) {
+            manualData = [...addedItems, ...manualData];
+            saveToLocal();
+            
+            if (typeof sendToSheet === 'function') {
+                showToast(`🚀 ${addedItems.length}건을 구글 시트로 업로드합니다...`);
+                await sendToSheet('batch_insert', addedItems);
+            }
+            
+            refreshAll();
+            closeModal('excel-mapping-modal');
+            alert(`✨ 성공! ${addedItems.length}건의 거래 내역을 업로드했습니다.`);
+        } else {
+            alert('인식된 유효한 거래 내역이 없습니다. 열 선택이 올바른지 확인해주세요.');
+        }
+    } catch (error) {
+        console.error("Confirm Excel Error:", error);
+        alert('처리 중 오류가 발생했습니다.');
+    } finally {
+        btn.innerText = '🚀 최종 업로드 시작';
+        btn.disabled = false;
     }
 }
 

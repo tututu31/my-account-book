@@ -413,6 +413,56 @@
             </div>
         </div>
     </div>
+    <!-- 엑셀 매핑 모달 -->
+    <div id="excel-mapping-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>📊 엑셀 컬럼 매핑</h2>
+                <button class="close-btn" onclick="closeModal('excel-mapping-modal')">&times;</button>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                업로드하신 엑셀 파일의 내용을 확인하고, 각 항목에 해당하는 열을 선택해주세요. AI가 자동으로 추천한 매핑값을 확인 후 [최종 업로드]를 눌러주세요.
+            </p>
+            
+            <div id="excel-preview-container" style="overflow-x: auto; margin-bottom: 2rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                <table id="excel-preview-table" style="font-size: 0.8rem; min-width: 600px;">
+                    <!-- JS로 미리보기 행 배치 -->
+                </table>
+            </div>
+
+            <div class="mapping-controls" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px;">
+                <div class="form-group">
+                    <label>📅 날짜 열</label>
+                    <select id="map-date" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>🏬 가맹점/내용 열</label>
+                    <select id="map-merchant" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>💰 금액 열</label>
+                    <select id="map-amount" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>🏷️ 카테고리 열 (선택)</label>
+                    <select id="map-category" class="form-control">
+                        <option value="">(없음 - AI 자동 분류)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>🔄 수입/지출 열 (선택)</label>
+                    <select id="map-type" class="form-control">
+                        <option value="">(없음 - 기본 지출)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn-submit" onclick="confirmExcelMapping()" id="btn-confirm-mapping" style="background: var(--accent-primary);">🚀 최종 업로드 시작</button>
+                <button class="btn-submit" onclick="closeModal('excel-mapping-modal')" style="background: rgba(255,255,255,0.1); width: auto;">취소</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 데이터 주입 영역 -->
     <script id='finance-data'

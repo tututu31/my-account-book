@@ -596,3 +596,7 @@ function refreshAll() {
     if (typeof initTrendChart === 'function') initTrendChart();
     if (typeof renderSettings === 'function') renderSettings();
 }
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.style.display = 'none';
+}

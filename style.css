@@ -689,3 +689,52 @@ td {
     50% { transform: translate(-50%, -50%) scale(1.05); }
     100% { transform: translate(-50%, -50%) scale(1); }
 }
+
+/* 엑셀 매핑 모달 전용 스타일 */
+#excel-preview-container {
+    background: #0f172a;
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+#excel-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-secondary);
+}
+
+#excel-preview-table th {
+    background: rgba(255,255,255,0.05);
+    position: sticky;
+    top: 0;
+    padding: 12px;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+    color: var(--accent-primary);
+    font-size: 0.75rem;
+    text-align: left;
+}
+
+#excel-preview-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    white-space: nowrap;
+    font-size: 0.75rem;
+}
+
+.mapping-controls label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+}
+
+.mapping-controls .form-control {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.85rem;
+    height: 38px;
+}
