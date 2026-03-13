@@ -713,6 +713,40 @@
             animation: spin 1s linear infinite; margin-bottom: 1rem;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Toast UI */
+        #toast-container {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            z-index: 11000; display: flex; flex-direction: column; gap: 0.75rem;
+            pointer-events: none; width: 90%; max-width: 400px;
+        }
+        .toast {
+            background: rgba(30, 41, 59, 1); color: white; padding: 1rem 1.5rem;
+            border-radius: 1rem; border-left: 4px solid var(--accent-primary);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px); animation: toast-in 0.3s ease-out;
+            pointer-events: auto; font-size: 0.9rem; line-height: 1.4;
+            opacity: 1; transition: opacity 0.5s, transform 0.5s;
+        }
+        @keyframes toast-in {
+            from { transform: translateY(100%) translateX(0); opacity: 0; }
+            to { transform: translateY(0) translateX(0); opacity: 1; }
+        }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.success { border-left-color: var(--success); }
+
+        /* Floating Action Button (FAB) */
+        #fab {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            width: 3.5rem; height: 3.5rem; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white; border: none; font-size: 2rem; z-index: 9999;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s, background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #fab:active { transform: scale(0.9); }
     </style>
 </head>
 
@@ -721,6 +755,8 @@
         <div class="spinner"></div>
         <div id="loading-text">구글 시트 동기화 중...</div>
     </div>
+    <div id="toast-container"></div>
+    <button id="fab" onclick="openTab(null, 'manual')">+</button>
 
     <script>
         // 캐시 강제 초기화 도구 (브라우저 주소 뒤에 ?update=true 붙이면 실행)
@@ -910,7 +946,7 @@
                     </div>
                     <div class="form-group">
                         <label>내용 (가맹점명)</label>
-                        <input type="text" id="m-merchant" class="form-control" placeholder="교통비, 식비 등">
+                        <input type="text" id="m-merchant" class="form-control" placeholder="교통비, 식비 등" onblur="suggestCategory(this.value)">
                     </div>
                     <div class="form-group">
                         <label>금액</label>
@@ -1136,6 +1172,44 @@
             }
         }
 
+        // [프리미엄 토스트 알림 추가]
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // [🤖 카테고리 자동 추천]
+        function suggestCategory(merchant) {
+            if (!merchant || merchant.length < 2) return;
+            // 1. 수동 입력 내역에서 먼저 비슷한 가맹점 검색
+            let match = manualData.find(m => m.merchant.toLowerCase().includes(merchant.toLowerCase()));
+            if (!match) {
+                // 2. 전체 내역(변동비)에서 검색
+                const allTx = fullData.variable_transactions || [];
+                match = allTx.find(t => t.merchant && t.merchant.toLowerCase().includes(merchant.toLowerCase()));
+            }
+            
+            if (match && match.category) {
+                const catSelect = document.getElementById('m-category');
+                if (catSelect) {
+                    const exists = Array.from(catSelect.options).some(opt => opt.value === match.category);
+                    if (exists) {
+                        catSelect.value = match.category;
+                        showToast(`🤖 '${match.merchant}' 내역을 기반으로 카테고리를 추천했습니다.`, 'info');
+                    }
+                }
+            }
+        }
+
 
         function openTab(evt, tabName) {
             const contents = document.getElementsByClassName("tab-content");
@@ -1269,10 +1343,10 @@
                 });
                 
                 // no-cors 모드에서는 응답 내용을 읽을 수 없으므로 성공했다고 가정하고 안내
-                alert('✨ [내보내기 완료]\n\n설정이 구글 시트의 [Settings] 탭에 안전하게 저장되었습니다.\n이제 모바일 기기에서 [📥 시트에서 내 설정 가져오기]를 눌러주세요.');
+                showToast('📤 설정 내보내기 완료! 모바일에서 [가져오기]를 눌러주세요.', 'success');
             } catch (error) {
                 console.error("Push Settings Error:", error);
-                alert(`❌ 설정 내보내기 실패\n\n원인: ${error.message}\nURL이나 네트워크 연결을 확인해주세요.`);
+                showToast(`❌ 설정 내보내기 실패: ${error.message}`, 'error');
             } finally {
                 hideLoading();
             }
@@ -1567,11 +1641,11 @@
                 // 첫 번째 모델로 유효성 테스트
                 await callGeminiAPI("hi");
                 localStorage.setItem('geminiApiKey', keyInput);
-                alert('✅ 유효한 API 키입니다. 성공적으로 저장되었습니다!');
+                showToast('✅ API 키 검증 성공 및 저장 완료!', 'success');
             } catch (error) {
                 GEMINI_API_KEY = oldKey; // 실패 시 복구
                 console.error("API Key Validation Error:", error);
-                alert(`❌ API 키 검증 실패: ${error.message}`);
+                showToast(`❌ API 키 검증 실패: ${error.message}`, 'error');
             } finally {
                 btn.innerText = originalText;
                 btn.disabled = false;
@@ -2590,6 +2664,14 @@ ${smsText}
             if (savedManual) manualData = JSON.parse(savedManual);
 
             originalInit();
+
+            // [🚀 앱 시작 시 자동 동기화]
+            setTimeout(() => {
+                if (GAS_WEB_APP_URL) {
+                    console.log("Auto-sync starting...");
+                    fetchDataFromSheet(true); // silent=true로 조용히 동기화
+                }
+            }, 1500);
         };
 
         // Service Worker 등록 (PWA 설치 가능하도록)
@@ -2740,7 +2822,7 @@ ${smsText}
                     if (manualTab && manualTab.classList.contains('active')) {
                         renderManualList();
                     }
-                    if(!silent) alert('동기화 완료! ' + data.length + '개의 내역을 구글 시트에서 가져왔습니다.');
+                    if(!silent) showToast(`🔄 동기화 완료! (${data.length}건)`, 'success');
                 }
 
             } catch (err) {
