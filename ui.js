@@ -435,10 +435,11 @@ function renderTables(txList) {
         const safeCat = tr.category.replace(/\//g, '_');
         const amtColor = isIncome ? 'var(--success)' : 'white';
         const prefix = isIncome ? '<b>[입금]</b> ' : '';
+        const isInstallment = /\(\d+\/\d+\)/.test(tr.merchant);
 
         const rowHTMLTop = `
             <td class="col-date">${formatDate(tr.date)}</td>
-            <td class="col-merchant">${prefix}${tr.merchant}</td>
+            <td class="col-merchant">${prefix}${tr.merchant} ${isInstallment ? '<span class="installment-badge">할부</span>' : ''}</td>
             <td class="col-amount" style="font-weight:600; color:${amtColor};">${formatNum(tr.amount)}</td>
             <td class="col-category"><span class="category-tag cat-${safeCat}">${tr.category}</span></td>
         `;
@@ -446,7 +447,7 @@ function renderTables(txList) {
         const rowHTMLAll = `
             <td class="col-check"><input type="checkbox" class="tx-checkbox" value="${tr.id}"></td>
             <td class="tx-date col-date">${formatDate(tr.date)}</td>
-            <td class="tx-merchant col-merchant">${prefix}${tr.merchant}</td>
+            <td class="tx-merchant col-merchant">${prefix}${tr.merchant} ${isInstallment ? '<span class="installment-badge">할부</span>' : ''}</td>
             <td class="tx-amount col-amount" style="font-weight:600; color:${amtColor};" data-val="${tr.amount}">${formatNum(tr.amount)}</td>
             <td class="tx-category col-category"><span class="category-tag cat-${safeCat}">${tr.category}</span></td>
             <td class="col-action">

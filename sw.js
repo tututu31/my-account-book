@@ -1,12 +1,12 @@
-const CACHE_NAME = 'ledgerbot-v14';
+const CACHE_NAME = 'ledgerbot-v14.1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css?v=14',
-  './utils.js?v=14',
-  './api.js?v=14',
-  './ui.js?v=14',
-  './app.js?v=14',
+  './style.css?v=14.1',
+  './utils.js?v=14.1',
+  './api.js?v=14.1',
+  './ui.js?v=14.1',
+  './app.js?v=14.1',
   './manifest.json',
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',

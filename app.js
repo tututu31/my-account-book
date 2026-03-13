@@ -84,33 +84,50 @@ function addManualEntry() {
     const merchantVal = document.getElementById('m-merchant').value;
     const amountVal = parseInt(document.getElementById('m-amount').value);
     const categoryVal = document.getElementById('m-category').value;
+    const installmentMonths = parseInt(document.getElementById('m-installment').value) || 1;
+    const interestRate = parseFloat(document.getElementById('m-interest').value) || 0;
 
     if (!dateVal || !merchantVal || isNaN(amountVal)) {
         alert('모든 필드를 올바르게 입력해주세요.');
         return;
     }
 
-    const dateParts = dateVal.split('-');
-    const newEntry = {
-        id: Date.now(),
-        date: `${dateParts[1]}.${dateParts[2]}`,
-        yearMonth: `${dateParts[0]}.${dateParts[1]}`,
-        fullDate: dateVal,
-        type: typeVal,
-        merchant: merchantVal,
-        amount: amountVal,
-        category: categoryVal,
-        source: '수동입력'
-    };
+    if (installmentMonths > 1) {
+        processInstallment({
+            date: dateVal.split('-').slice(1).join('.'), // YYYY-MM-DD -> MM.DD
+            type: typeVal,
+            merchant: merchantVal,
+            amount: amountVal,
+            category: categoryVal,
+            installmentMonths,
+            interestRate
+        });
+        showToast('🕒 할부 내역이 생성되었습니다.');
+    } else {
+        const dateParts = dateVal.split('-');
+        const newEntry = {
+            id: Date.now(),
+            date: `${dateParts[1]}.${dateParts[2]}`,
+            yearMonth: `${dateParts[0]}.${dateParts[1]}`,
+            fullDate: dateVal,
+            type: typeVal,
+            merchant: merchantVal,
+            amount: amountVal,
+            category: categoryVal,
+            source: '수동입력'
+        };
 
-    manualData.push(newEntry);
-    saveToLocal();
-    refreshAll();
-    if (typeof sendToSheet === 'function') sendToSheet('insert', newEntry);
+        manualData.push(newEntry);
+        saveToLocal();
+        refreshAll();
+        if (typeof sendToSheet === 'function') sendToSheet('insert', newEntry);
+        showToast('✅ 내역이 추가되었습니다.');
+    }
 
-    showToast('✅ 내역이 추가되었습니다.');
     document.getElementById('m-merchant').value = '';
     document.getElementById('m-amount').value = '';
+    document.getElementById('m-installment').value = '1';
+    document.getElementById('m-interest').value = '0';
 }
 
 function deleteManualEntry(id) {
@@ -645,23 +662,24 @@ async function checkAutomationPending() {
             let count = 0;
             for (const item of pending) {
                 try {
-                    const prompt = `가계부 자동화 입력입니다. 다음 원문에서 날짜, 가맹점, 금액, 지출/수입 여부, 카테고리를 분석해서 JSON 객체로 응답해줘. 
-                        형식: {date: "MM.DD", merchant, amount, type, category}. 원문: "${item.merchant === '자동화(인식대기)' ? item.category : item.merchant}"`;
-                    // Note: In the proposed GAS code, rawText was stored in 'category' or 'merchant' field depending on implementation.
-                    // Let's assume raw text is in merchant if it's not the label.
-                    const rawText = item.merchant === '자동화(인식대기)' ? item.category : item.merchant;
+                    const prompt = `가계부 자동화 입력입니다. 다음 원문에서 날짜, 가맹점, 금액, 지출/수입 여부, 카테고리, 그리고 '할부 개월(installmentMonths)' 및 '할부 이율(interestRate)'을 분석해서 JSON 객체로 응답해줘. 
+                        형식: {date, merchant, amount, type, category, installmentMonths, interestRate}. 원문: "${rawText}"`;
+                    
                     const result = await callGeminiAPI(prompt);
                     
                     if (result && result.amount) {
-                        const today = new Date();
-                        item.date = result.date || `${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-                        item.merchant = result.merchant || '자동화 분석';
-                        item.amount = result.amount;
-                        item.category = result.category || '기타';
-                        item.type = result.type || 'expense';
-                        item.source = 'AI자동화봇';
-                        
-                        if (typeof sendToSheet === 'function') sendToSheet('update', item);
+                        if (result.installmentMonths > 1) {
+                            await processInstallment(result);
+                        } else {
+                            const today = new Date();
+                            item.date = result.date || `${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+                            item.merchant = result.merchant || '자동화 분석';
+                            item.amount = result.amount;
+                            item.category = result.category || '기타';
+                            item.type = result.type || 'expense';
+                            item.source = 'AI자동화봇';
+                            if (typeof sendToSheet === 'function') sendToSheet('update', item);
+                        }
                     }
                 } catch (e) {
                     console.error("Automation analysis failed for item:", item.id, e);
@@ -676,6 +694,71 @@ async function checkAutomationPending() {
             showToast(`✅ ${pending.length}건의 내역이 자동으로 정리되었습니다.`);
         }
     }
+}
+
+// Installment Logic
+async function processInstallment(data) {
+    const months = parseInt(data.installmentMonths) || 1;
+    const rate = parseFloat(data.interestRate) || 0;
+    const totalPrincipal = parseInt(data.amount) || 0;
+    const baseDate = data.date || `${String(new Date().getMonth()+1).padStart(2,'0')}.${String(new Date().getDate()).padStart(2,'0')}`;
+    
+    // Monthly payment calculation (Amortization)
+    let monthlyPayments = [];
+    if (rate === 0) {
+        const amt = Math.floor(totalPrincipal / months);
+        for (let i = 0; i < months; i++) {
+            let currentAmt = amt;
+            if (i === months - 1) currentAmt = totalPrincipal - (amt * (months - 1)); // Adjust last month for floor diff
+            monthlyPayments.push(currentAmt);
+        }
+    } else {
+        const r = rate / 12 / 100;
+        const pmt = Math.floor(totalPrincipal * (r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1));
+        for (let i = 0; i < months; i++) {
+            monthlyPayments.push(pmt);
+        }
+    }
+
+    const entries = [];
+    const [m, d] = baseDate.split('.').map(n => parseInt(n));
+    const year = new Date().getFullYear();
+    
+    for (let i = 0; i < months; i++) {
+        let currentMonth = m + i;
+        let currentYear = year;
+        while (currentMonth > 12) {
+            currentMonth -= 12;
+            currentYear += 1;
+        }
+        
+        const dateStr = `${String(currentMonth).padStart(2, '0')}.${String(d).padStart(2, '0')}`;
+        const entry = {
+            id: Date.now() + i,
+            date: dateStr,
+            yearMonth: `${currentYear}.${String(currentMonth).padStart(2, '0')}`,
+            fullDate: `${currentYear}.${dateStr}`,
+            type: data.type || 'expense',
+            merchant: `${data.merchant} (${i + 1}/${months})`,
+            amount: monthlyPayments[i],
+            category: data.category || '할부',
+            source: 'AI할부봇',
+            imageBase64: ''
+        };
+        entries.push(entry);
+    }
+
+    // Add to local and sync
+    entries.forEach(e => manualData.push(e));
+    if (typeof sendToSheet === 'function') {
+        showLoading(`할부 내역 ${months}개월치 등록 중...`);
+        // We can use batch_insert if GAS supports it, or just loop simple inserts. 
+        // Let's use batch_insert for efficiency if possible.
+        await sendToSheet('batch_insert', entries);
+    }
+    saveToLocal();
+    refreshAll();
+    hideLoading();
 }
 
 // App Start

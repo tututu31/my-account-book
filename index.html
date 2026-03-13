@@ -18,7 +18,7 @@
         // Standard Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=14')
+                navigator.serviceWorker.register('sw.js?v=14.1')
                     .then(registration => {
                         console.log('Service Worker registered: v13');
                         registration.onupdatefound = () => {
@@ -41,7 +41,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=14">
+    <link rel="stylesheet" href="style.css?v=14.1">
 </head>
 
 <body>
@@ -63,7 +63,7 @@
     </div>
 
     <!-- Version Badge for Mobile Verification -->
-    <div class="version-badge" onclick="openTab(null, 'settings'); showToast('현재 최신 버전(v14.0)입니다.', 'success');">v14.0</div>
+    <div class="version-badge" onclick="openTab(null, 'settings'); showToast('현재 최신 버전(v14.1)입니다.', 'success');">v14.1</div>
 
     <!-- Global Drop Zone -->
     <div id="drop-zone">
@@ -82,7 +82,7 @@
     <div class="container">
         <header>
             <div>
-                <h1>프리미엄 가계부 <span id="v-tag" style="font-size: 0.8rem; vertical-align: middle; background: var(--accent-primary); color: white; padding: 2px 6px; border-radius: 4px; -webkit-text-fill-color: white;">v14</span></h1>
+                <h1>프리미엄 가계부 <span id="v-tag" style="font-size: 0.8rem; vertical-align: middle; background: var(--accent-primary); color: white; padding: 2px 6px; border-radius: 4px; -webkit-text-fill-color: white;">v14.1</span></h1>
                 <p style="color: var(--text-secondary); margin-top: 0.25rem;">스마트한 자산 관리를 시작하세요</p>
             </div>
             <div style="display: flex; align-items: center; gap: 1rem;">
@@ -260,15 +260,17 @@
                     </div>
                     <div class="form-group">
                         <label>카테고리</label>
-                        <select id="m-category" class="form-control">
-                            <option value="식비">식비</option>
-                            <option value="교통">교통</option>
-                            <option value="쇼핑">쇼핑</option>
-                            <option value="생활/미용">생활/미용</option>
-                            <option value="여가/여행">여가/여행</option>
-                            <option value="통신/보험/공과금">통신/보험/공과금</option>
-                            <option value="기타">기타</option>
                         </select>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                            <label>할부 개월 (1=일시불)</label>
+                            <input type="number" id="m-installment" class="form-control" value="1" min="1">
+                        </div>
+                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                            <label>연이율 (%)</label>
+                            <input type="number" id="m-interest" class="form-control" value="0" min="0" step="0.1">
+                        </div>
                     </div>
                     <button class="btn-submit" onclick="addManualEntry()">저장하기</button>
                 </div>
@@ -297,7 +299,7 @@
         <!-- 탭 6: 설정 -->
         <div id="settings" class="tab-content">
             <div style="text-align: right; margin-bottom: 1rem; display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem;">
-                <span style="font-size: 0.75rem; color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 6px;">System Version: 2026.03.13_v14.0</span>
+                <span style="font-size: 0.75rem; color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 6px;">System Version: 2026.03.13_v14.1</span>
                 <button onclick="forceSystemUpdate()" style="font-size: 0.7rem; background: var(--danger); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; opacity: 0.6;">시스템 초기화(캐시 삭제)</button>
             </div>
             <div class="settings-grid">
@@ -416,10 +418,10 @@
     <script id='finance-data'
         type='application/json'>{"income": 0, "fixed_expenses": [], "variable_transactions": [], "monthly_stats": {}}</script>
 
-    <script src="utils.js?v=14"></script>
-    <script src="api.js?v=14"></script>
-    <script src="ui.js?v=14"></script>
-    <script src="app.js?v=14"></script>
+    <script src="utils.js?v=14.1"></script>
+    <script src="api.js?v=14.1"></script>
+    <script src="ui.js?v=14.1"></script>
+    <script src="app.js?v=14.1"></script>
 </body>
 
 </html>
