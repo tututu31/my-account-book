@@ -11,14 +11,14 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>프리미엄 가계부</title>
+    <title>LedgerBot v14.4 - 프리미엄 가계부</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script>
         // Standard Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=14.2')
+                navigator.serviceWorker.register('sw.js?v=14.4')
                     .then(registration => {
                         console.log('Service Worker registered: v13');
                         registration.onupdatefound = () => {
@@ -41,7 +41,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=14.2">
+    <link rel="stylesheet" href="style.css?v=14.4">
 </head>
 
 <body>
@@ -424,6 +424,14 @@
                 업로드하신 엑셀 파일의 내용을 확인하고, 각 항목에 해당하는 열을 선택해주세요. AI가 자동으로 추천한 매핑값을 확인 후 [최종 업로드]를 눌러주세요.
             </p>
             
+            <div id="excel-preset-container" style="margin-bottom: 1.5rem; display: flex; gap: 0.8rem; align-items: center; background: rgba(56, 189, 248, 0.1); padding: 1rem; border-radius: 8px;">
+                <label style="white-space: nowrap; font-size: 0.85rem; font-weight: 600;">⭐ 내 프리셋:</label>
+                <select id="mapping-preset-select" class="form-control" onchange="loadMappingPreset(this.value)" style="flex: 1; max-width: 250px;">
+                    <option value="">(새로 매핑하기)</option>
+                </select>
+                <button class="btn-submit" onclick="deleteMappingPreset()" style="width: auto; background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 4px 10px; font-size: 0.75rem;">삭제</button>
+            </div>
+            
             <div id="excel-preview-container" style="overflow-x: auto; margin-bottom: 2rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
                 <table id="excel-preview-table" style="font-size: 0.8rem; min-width: 600px;">
                     <!-- JS로 미리보기 행 배치 -->
@@ -457,6 +465,11 @@
                 </div>
             </div>
 
+            <div id="save-preset-container" style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                <input type="text" id="new-preset-name" placeholder="프리셋 이름 (예: 신한계좌)" class="form-control" style="flex: 1;">
+                <button class="btn-submit" onclick="saveCurrentMappingAsPreset()" style="width: auto; background: var(--success); padding: 10px 20px;">⭐ 현재 매핑 저장</button>
+            </div>
+
             <div style="display: flex; gap: 1rem;">
                 <button class="btn-submit" onclick="confirmExcelMapping()" id="btn-confirm-mapping" style="background: var(--accent-primary);">🚀 최종 업로드 시작</button>
                 <button class="btn-submit" onclick="closeModal('excel-mapping-modal')" style="background: rgba(255,255,255,0.1); width: auto;">취소</button>
@@ -468,10 +481,10 @@
     <script id='finance-data'
         type='application/json'>{"income": 0, "fixed_expenses": [], "variable_transactions": [], "monthly_stats": {}}</script>
 
-    <script src="utils.js?v=14.2"></script>
-    <script src="api.js?v=14.2"></script>
-    <script src="ui.js?v=14.2"></script>
-    <script src="app.js?v=14.2"></script>
+    <script src="utils.js?v=14.4"></script>
+    <script src="api.js?v=14.4"></script>
+    <script src="ui.js?v=14.4"></script>
+    <script src="app.js?v=14.4"></script>
 </body>
 
 </html>

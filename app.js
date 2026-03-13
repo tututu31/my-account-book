@@ -12,6 +12,7 @@ let userSettings = JSON.parse(localStorage.getItem('userSettings_v4') || localSt
 
 let tempExcelData = null; // 엑셀 매핑용 임시 데이터
 let tempExcelFilename = "";
+let mappingPresets = JSON.parse(localStorage.getItem('mappingPresets') || '{}');
 
 const defaultSettings = {
     budgets: { "식비": 600000, "교통": 150000, "쇼핑": 200000, "생활_미용": 100000, "통신_보험_공과금": 300000, "기타": 100000 },
@@ -327,6 +328,16 @@ function showExcelMappingModal(rows) {
     const table = document.getElementById('excel-preview-table');
     const selectors = ['map-date', 'map-merchant', 'map-amount', 'map-category', 'map-type'];
     
+    // 프리셋 드롭다운 채우기
+    const presetSelect = document.getElementById('mapping-preset-select');
+    presetSelect.innerHTML = '<option value="">(새로 매핑하기)</option>';
+    Object.keys(mappingPresets).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.text = name;
+        presetSelect.appendChild(opt);
+    });
+
     // 헤더 행 찾기 (비어있지 않은 첫 행)
     let headerRowIndex = 0;
     for (let i = 0; i < Math.min(rows.length, 10); i++) {
@@ -386,6 +397,61 @@ function showExcelMappingModal(rows) {
     });
 
     modal.style.display = 'block';
+}
+
+function saveCurrentMappingAsPreset() {
+    const nameInput = document.getElementById('new-preset-name');
+    const name = nameInput.value.trim();
+    if (!name) return alert('프리셋 이름을 입력해주세요.');
+
+    const mapping = {
+        colDate: document.getElementById('map-date').value,
+        colMerchant: document.getElementById('map-merchant').value,
+        colAmount: document.getElementById('map-amount').value,
+        colCategory: document.getElementById('map-category').value,
+        colType: document.getElementById('map-type').value
+    };
+
+    mappingPresets[name] = mapping;
+    localStorage.setItem('mappingPresets', JSON.stringify(mappingPresets));
+    
+    // 드롭다운 갱신
+    const presetSelect = document.getElementById('mapping-preset-select');
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.text = name;
+    presetSelect.appendChild(opt);
+    presetSelect.value = name;
+    
+    nameInput.value = '';
+    showToast(`⭐ '${name}' 프리셋이 저장되었습니다.`);
+}
+
+function loadMappingPreset(name) {
+    if (!name || !mappingPresets[name]) return;
+    const mapping = mappingPresets[name];
+    
+    document.getElementById('map-date').value = mapping.colDate;
+    document.getElementById('map-merchant').value = mapping.colMerchant;
+    document.getElementById('map-amount').value = mapping.colAmount;
+    document.getElementById('map-category').value = mapping.colCategory;
+    document.getElementById('map-type').value = mapping.colType;
+    
+    showToast(`📂 '${name}' 프리셋을 불러왔습니다.`);
+}
+
+function deleteMappingPreset() {
+    const presetSelect = document.getElementById('mapping-preset-select');
+    const name = presetSelect.value;
+    if (!name) return alert('삭제할 프리셋을 선택해주세요.');
+    
+    if (confirm(`'${name}' 프리셋을 삭제하시겠습니까?`)) {
+        delete mappingPresets[name];
+        localStorage.setItem('mappingPresets', JSON.stringify(mappingPresets));
+        presetSelect.remove(presetSelect.selectedIndex);
+        presetSelect.value = "";
+        showToast('🗑️ 프리셋이 삭제되었습니다.');
+    }
 }
 
 async function confirmExcelMapping() {
