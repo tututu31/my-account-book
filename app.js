@@ -323,30 +323,42 @@ async function handleExcelUpload(event) {
     event.target.value = '';
 }
 
-function showExcelMappingModal(rows) {
+function showExcelMappingModal(rows, headerIndex = null) {
     const modal = document.getElementById('excel-mapping-modal');
     const table = document.getElementById('excel-preview-table');
     const selectors = ['map-date', 'map-merchant', 'map-amount', 'map-category', 'map-type'];
+    const headerInput = document.getElementById('map-header-row');
     
-    // 프리셋 드롭다운 채우기
+    // 프리셋 드롭다운 채우기 (최초 오픈 시에만 할 수도 있지만 매번 갱신해도 무방)
     const presetSelect = document.getElementById('mapping-preset-select');
-    presetSelect.innerHTML = '<option value="">(새로 매핑하기)</option>';
-    Object.keys(mappingPresets).forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.text = name;
-        presetSelect.appendChild(opt);
-    });
+    if (presetSelect) {
+        presetSelect.innerHTML = '<option value="">(새로 매핑하기)</option>';
+        Object.keys(mappingPresets).forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.text = name;
+            presetSelect.appendChild(opt);
+        });
+    }
 
-    // 헤더 행 찾기 (비어있지 않은 첫 행)
+    // 헤더 행 결정
     let headerRowIndex = 0;
-    for (let i = 0; i < Math.min(rows.length, 10); i++) {
-        if (rows[i] && rows[i].length > 1) {
-            headerRowIndex = i;
-            break;
+    if (headerIndex !== null) {
+        headerRowIndex = headerIndex;
+    } else {
+        // 자동 감지: 데이터가 2개 이상 있는 첫 번째 행을 헤더로 추정
+        for (let i = 0; i < Math.min(rows.length, 50); i++) {
+            if (rows[i] && rows[i].filter(cell => cell !== null && cell !== '').length >= 3) {
+                headerRowIndex = i;
+                break;
+            }
         }
     }
-    const headers = rows[headerRowIndex].map((h, idx) => h || `Column ${idx + 1}`);
+    
+    if (headerInput) headerInput.value = headerRowIndex + 1; // 1-based display
+    
+    const headers = (rows[headerRowIndex] || []).map((h, idx) => h || `Column ${idx + 1}`);
+    const maxCols = Math.max(...rows.slice(0, 100).map(r => r ? r.length : 0));
     
     // 셀렉터 채우기
     selectors.forEach(id => {
@@ -374,13 +386,20 @@ function showExcelMappingModal(rows) {
         });
     });
 
-    // 미리보기 테이블 채우기 (최대 5행)
-    let html = '<thead><tr>';
-    headers.forEach(h => html += `<th>${h}</th>`);
+    // 미리보기 테이블 채우기 (최대 50행 보여줌)
+    let html = '<thead><tr style="background: rgba(56, 189, 248, 0.2); color: white;"><th>번호</th>';
+    for (let j = 0; j < maxCols; j++) {
+        html += `<th>${String.fromCharCode(65 + j)}열</th>`;
+    }
     html += '</tr></thead><tbody>';
-    for (let i = headerRowIndex + 1; i < Math.min(rows.length, headerRowIndex + 6); i++) {
-        html += '<tr>';
-        headers.forEach((_, idx) => html += `<td>${rows[i][idx] || ''}</td>`);
+    
+    for (let i = 0; i < Math.min(rows.length, 50); i++) {
+        const isHeader = i === headerRowIndex;
+        const style = isHeader ? 'background: rgba(56, 189, 248, 0.3); font-weight: bold; color: yellow;' : '';
+        html += `<tr style="${style}"><td>${i + 1}</td>`;
+        for (let j = 0; j < maxCols; j++) {
+            html += `<td>${rows[i] && rows[i][j] !== undefined ? rows[i][j] : ''}</td>`;
+        }
         html += '</tr>';
     }
     html += '</tbody>';
@@ -454,7 +473,14 @@ function deleteMappingPreset() {
     }
 }
 
+function updateExcelHeaderRow(rowNum) {
+    const idx = parseInt(rowNum) - 1;
+    if (isNaN(idx) || idx < 0 || !tempExcelData) return;
+    showExcelMappingModal(tempExcelData, idx);
+}
+
 async function confirmExcelMapping() {
+    const headerIdx = (parseInt(document.getElementById('map-header-row').value) || 1) - 1;
     const colDate = document.getElementById('map-date').value;
     const colMerchant = document.getElementById('map-merchant').value;
     const colAmount = document.getElementById('map-amount').value;
@@ -474,7 +500,7 @@ async function confirmExcelMapping() {
         const currentYear = new Date().getFullYear();
         let addedItems = [];
 
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = headerIdx + 1; i < rows.length; i++) {
             const row = rows[i];
             const rawDate = row[colDate];
             const rawAmount = String(row[colAmount]).replace(/[^0-9.-]/g, '');

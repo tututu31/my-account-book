@@ -11,14 +11,14 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>LedgerBot v14.4 - 프리미엄 가계부</title>
+    <title>LedgerBot v14.5 - 프리미엄 가계부</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script>
         // Standard Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=14.4')
+                navigator.serviceWorker.register('sw.js?v=14.5')
                     .then(registration => {
                         console.log('Service Worker registered: v13');
                         registration.onupdatefound = () => {
@@ -41,7 +41,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=14.4">
+    <link rel="stylesheet" href="style.css?v=14.5">
 </head>
 
 <body>
@@ -439,6 +439,11 @@
             </div>
 
             <div class="mapping-controls" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px;">
+                <div class="form-group" style="grid-column: 1 / -1; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 1rem;">
+                    <label style="margin-bottom: 0; color: var(--accent-primary);">📌 데이터 시작 행 (헤더/제목줄 번호):</label>
+                    <input type="number" id="map-header-row" value="1" min="1" class="form-control" style="width: 80px; text-align: center;" onchange="updateExcelHeaderRow(this.value)">
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">* 제목줄이 몇 번째 줄인지 입력하면 아래 열 목록이 갱신됩니다.</span>
+                </div>
                 <div class="form-group">
                     <label>📅 날짜 열</label>
                     <select id="map-date" class="form-control"></select>
@@ -481,10 +486,10 @@
     <script id='finance-data'
         type='application/json'>{"income": 0, "fixed_expenses": [], "variable_transactions": [], "monthly_stats": {}}</script>
 
-    <script src="utils.js?v=14.4"></script>
-    <script src="api.js?v=14.4"></script>
-    <script src="ui.js?v=14.4"></script>
-    <script src="app.js?v=14.4"></script>
+    <script src="utils.js?v=14.5"></script>
+    <script src="api.js?v=14.5"></script>
+    <script src="ui.js?v=14.5"></script>
+    <script src="app.js?v=14.5"></script>
 </body>
 
 </html>
